@@ -1,6 +1,6 @@
 var NY_district_shapes_URL = "https://services5.arcgis.com/GfwWNkhOj9bNBqoJ/arcgis/rest/services/nycd/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson";
 var NY_district_names_URL = "https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD";
-var NY_crimes_URL = "https://data.cityofnewyork.us/api/views/qgea-i56i/rows.json?accessType=DOWNLOAD";
+var NY_crimes_URL = "https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD";
 var NY_building_URL = "https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD";
 var URL;
 /*
@@ -23,6 +23,7 @@ var boroughs = [{name: "Manhattan", habitable: 12},
 var districts = new Array(71);
 var infoRows = [];
 var buildings = [];
+var crimes = [];
 var map;
 var markers = [];
 var nyu = {lat: 40.7291, lng: -73.9965};
@@ -31,15 +32,16 @@ var drawOnlyHabitable = false;
 var sortAscending = true;
 
 function getData(){
-    $.when($.get(NY_district_shapes_URL), $.get(NY_district_names_URL), $.get(NY_building_URL) )
+    $.when($.get(NY_district_shapes_URL), $.get(NY_district_names_URL), $.get(NY_building_URL), $.get(NY_crimes_URL) )
     .done(function(data1, data2, data3, data4){
          data1 = $.parseJSON(data1[2].responseText).features;
          data2 = data2[2].responseJSON.data;
          data3 = data3[2].responseJSON.data;
-         //console.log(data4);
+         data4 = data4[2].responseJSON.data;
          constructFeatures(data1);
          constructNames(data2);
          constructBuildings(data3);
+         constructCrimes(data4);
          // TODO: Construct Crimes
          neighborhoodsTable();
      }).fail(function(){
@@ -106,6 +108,7 @@ function constructFeatures(districtsFeatures){
             polygon: polygon,
             habitable: habitable,
             score: 0,
+            crimes: 0,
             buildings: []};
         }
 }
@@ -158,6 +161,20 @@ function constructBuildings(data){
     }
 }
 
+function constructCrimes(data){
+    for (var i = 0; i < data.length; i++) {
+        point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
+        district = findDistrict(point);
+        if(district == -1){
+            console.log("i: " + i);
+            console.log(data[i]);
+            addMarker(point,"CRIMENLOL");
+            continue;
+        }
+        districts[district].crimes++;
+    }
+}
+
 function neighborhoodsTable(){
     var columns = ['id','lat','lng','name','borough','district'];
     getTable(infoRows, columns);
@@ -171,7 +188,7 @@ function buildingsTable(){
 }
 
 function districtsTable(){
-    var columns = ["id", "borough", "borocd", "score","distance"];
+    var columns = ["id", "borough", "borocd", "score","distance","crimes"];
     getTable(districts, columns, function(row){
         addDistrict(row.id);
     });
@@ -185,15 +202,16 @@ function topDistrictsTable(){
     if(!topCalculated){
         var affordability = arr.zScores(districts.map(a => a.score));
         var distances = arr.zScores(districts.map(a => a.distance));
+        var crimes = arr.zScores(districts.map(a => a.crimes));
         var zscore = affordability.map(function(a,i){
-            return a + distances[i];
+            return a - distances[i] - crimes[i];
         });
         console.log("done");
         districts = districts.map(function(a,i){
             a.zscore = zscore[i];
             return a;
         })
-        var columns = ["id", "borough", "borocd","score","distance","zscore"];
+        var columns = ["id", "borough", "borocd","score","distance","crimes","zscore"];
         getTable(districts, columns, function(row){
             addDistrict(row.id);
         });
@@ -210,7 +228,6 @@ function sortByColumn(tbody, column){
     sortAscending = !sortAscending;
 }
 
-var initialized = false;
 var dataTable;
 
 function paginate(){
@@ -234,6 +251,7 @@ function getTable(data, columns, rowClick){
     $("#districtsTableMessage").hide();
     //http://bl.ocks.org/jfreels/6734025
     //http://bl.ocks.org/AMDS/4a61497182b8fcb05906
+    //https://stackoverflow.com/questions/32871044/how-to-update-d3-table
     var table = d3.select("table");
     var thead = table.select('thead').select('tr');
     var tbody = table.select('tbody');
@@ -282,7 +300,6 @@ function getTable(data, columns, rowClick){
     cells.exit().remove();
     paginate();
     //dataTable = $("table").DataTable();
-    initialized = true;
 }
 
 function toLatLng(lat, lng){
