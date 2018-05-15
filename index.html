@@ -1,1 +1,228 @@
-Hello World
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="author" content="Miguel Ortiz">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- DataTables-Bootstrap 4 CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.16/datatables.min.css">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- jQuery ui-->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <!-- d3.js -->
+    <script src ="https://d3js.org/d3.v4.min.js"></script>
+    <!-- tableToCSV jquery plugin-->
+    <script src="https://www.jqueryscript.net/demo/jQuery-Plugin-To-Convert-HTML-Table-To-CSV-tabletoCSV/jquery.tabletoCSV.js"></script>
+    <!--DataTables-->
+    <script src="https://cdn.datatables.net/v/bs4/dt-1.10.16/datatables.min.js"></script>
+    <script src="main.js"></script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMxp2G5hvKXNz3SgucMeB_NRulrjJH45o&callback=initMap">
+    </script>
+
+    <link href="https://fonts.googleapis.com/css?family=Lato|Roboto" rel="stylesheet">
+    <title>NYU easy residence!</title>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light" id="navbar">
+            <a class="navbar-brand" href="#">NYU easy Residence</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#home">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#maps">Maps</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#charts">Charts</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+
+                </span>
+            </div>
+        </nav>
+    </div>
+    <!-- Nav bar div -->
+
+    <div class="container" id="home">
+        <div class="jumbotron purple-bg text-center">
+            <h1>NYU easy Residence</h1>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-12 text-center">
+                <h2>Welcome!</h2>
+                <hr>
+                <p>Here you can find residence options near NYU</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="maps">
+        <div class="row justify-content-center">
+            <h3>Map</h3>
+        </div>
+        <div class="row">
+            <form class="col-md-5 purple-bg" id="mapOptions">
+                <fieldset class="form-group">
+                    <div class="row" id="boroughCheckboxes">
+                        <legend class="col-form-label col-md-2 pt-0">Boroughs</legend>
+                        <div class="col-md-10">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="boroCB1">
+                                <label class="form-check-label" for="boroCB1">Manhattan</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="boroCB2">
+                                <label class="form-check-label" for="boroCB2">Bronx</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="boroCB3">
+                                <label class="form-check-label" for="boroCB3">Brooklyn</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="boroCB4">
+                                <label class="form-check-label" for="boroCB4">Queens</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="boroCB5">
+                                <label class="form-check-label" for="boroCB5">Staten Island</label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="form-group">
+                    <div class="row">
+                        <legend class="col-form-label col-md-2 pt-0">Draw</legend>
+                        <div class="col-sm-10">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="drawCB1">
+                                <label class="form-check-label" for="drawCB1">Only habitable Districts</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="drawCB2">
+                                <label class="form-check-label" for="drawCB2">Draw Markers</label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-group row">
+                    <div class="col-md-12">
+                        <button class="btn btn-block" id="addBoroughsCheckBoxes" type="button">Graph the borders!</button>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="boroughNo" class="col-md-2 col-form-label">Borough</label>
+                    <div class="col-md-8 offset-md-2">
+                        <input type="text" class="form-control blue-bg" id="boroughNo">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="districtNo" class="col-md-2 col-form-label">District</label>
+                    <div class="col-md-8 offset-md-2">
+                        <input type="text" class="form-control blue-bg" id="districtNo">
+                    </div>
+                </div>
+                <div class="form-group row justify-content-center">
+                    <div class="col-md-auto">
+                        <button class="btn btn-block"id="getNYDistrictShape" type="button">Get NY District shape</button>
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-block" id="getNYBoroughShape" type="button">Get NY Borough Districts Shape</button>
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-block" id="clearBorders" type="button">Clear</button>
+                    </div>
+                </div>
+            </form>
+            <div class="col-md-7" id="map">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <p> There are 71 districst in New York City, but only 59 of them are habitable! (12 of them are green areas), nonetheless you can see here all of them</p>
+                <p> The districts are classified into Boroughs and also contain several Neighborhoods!</p>
+                <p> Also.. The little red marker is NYU!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="charts">
+        <div class="row justify-content-center">
+            <h3>Charts</h3>
+        </div>
+        <div class="row justify-content-center" id="tableSelector">
+            <div class="col-md-auto">
+                <button class="btn" id="getData">See Neighborhoods!</button>
+            </div>
+            <div class="col-md-auto">
+                <button class="btn" id="getBuildingsData">See Buildings!</button>
+            </div>
+            <div class="col-md-auto">
+                <button class="btn" id="getDistrictsData">See districts</button>
+            </div>
+            <div class="col-md-auto">
+                <button class="btn" id="export">export!</button>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label for="">
+                    "Show "
+                    <select class="" name="">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    " entries"
+                </label>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-auto">
+                <table class="table table-striped table-bordered" id="neighborhoodTable">
+                    <thead class="thead-dark">
+                        <tr>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-auto">
+            </div>
+        </div>
+        <p>Here you find the list of all the Neighborhoods in NY, along with their name centroid coordinates (geografical center) and the borough that they are part of.</p>
+
+    </div>
+
+    <div class="container" id ="d3_js">
+        Hey
+    </div>
+</body>
+</html>

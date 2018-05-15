@@ -1,0 +1,51 @@
+body {
+    font-family: Arial, sans-serif;
+    padding-top: 3rem;
+    background-color: #9090A5;
+}
+
+.container {
+    font-family: 'Roboto', sans-serif;
+    background-color: white;
+}
+
+#d3_js{
+}
+
+#map{
+    padding-bottom:40%;
+}
+
+.form-control{
+    color: #9090A5;
+    border-width: 2px 0px 3px 0px;
+    border-style: solid;
+    border-color: #9090A5;
+    margin-top: 3px;
+}
+
+button {
+    background-color: #F61067;
+    margin: 2px;
+    color:white;
+}
+
+button .selected{
+    background:#2AD392;
+    border: solid #F61067;
+}
+
+.purple-bg{
+    background-color: #13124F;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+}
+
+.blue-bg{
+    background-color: #352BA5;
+    color:white;
+}
+
+.green-bg{
+    background-color: #2AD392;
+}
