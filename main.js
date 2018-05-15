@@ -10,6 +10,7 @@ Borough no:
 3 Brooklyn 18
 4 Queens 14
 5 Staten Island 3
+
 */
 
 var boroughsID = {"Manhattan": 0, "Bronx": 1, "Brooklyn": 2, "Queens": 3, "Staten Island": 4};
