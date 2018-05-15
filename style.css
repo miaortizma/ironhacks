@@ -9,10 +9,10 @@ body {
     background-color: white;
 }
 
-#d3_js{
-}
 
 #map{
+    position: relative;
+    overflow: hidden;
     padding-bottom:40%;
 }
 
@@ -30,7 +30,7 @@ button {
     color:white;
 }
 
-button .selected{
+.selected{
     background:#2AD392;
     border: solid #F61067;
 }

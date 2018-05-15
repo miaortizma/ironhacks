@@ -25,6 +25,7 @@ var infoRows = [];
 var buildings = [];
 var map;
 var markers = [];
+var nyu = {lat: 40.7291, lng: -73.9965};
 var drawMarkers = false;
 var drawOnlyHabitable = false;
 var sortAscending = true;
@@ -46,6 +47,7 @@ function getData(){
 }
 
 function constructFeatures(districtsFeatures){
+    var uni = new google.maps.LatLng(nyu);
     for (var i = 0; i < districtsFeatures.length; i++) {
         var boroCD = districtsFeatures[i].properties.BoroCD;
         var boroughId = (boroCD/100>>0) - 1;
@@ -96,6 +98,7 @@ function constructFeatures(districtsFeatures){
         districts[i] = {id: i,
             path: coords,
             center: center,
+            distance: google.maps.geometry.spherical.computeDistanceBetween(uni, center.getPosition() ),
             borough: boroughId,
             borocd: boroCD,
             type: districtsFeatures[i].geometry.type,
@@ -158,19 +161,21 @@ function neighborhoodsTable(){
     var columns = ['id','lat','lng','name','borough','district'];
     getTable(infoRows, columns);
     $("#getData").addClass("selected");
-    console.log($("#getData").hasClass("selected"));
 }
 
 function buildingsTable(){
-    var columns  = ['borough', 'district'];
+    var columns  = ['borough', 'district', 'lat', 'lng'];
     getTable(buildings, columns);
     $("#getBuildingsData").addClass("selected");
 }
 
 function districtsTable(){
-    var columns = ["id", "borough", "borocd", "score"];
-    getTable(districts, columns);
+    var columns = ["id", "borough", "borocd", "score","distance"];
+    getTable(districts, columns, function(row){
+        addDistrict(row.id);
+    });
     $("#getDistrictsData").addClass("selected");
+    $("#districtsTableMessage").show();
 }
 
 function sortByColumn(tbody, column){
@@ -188,10 +193,14 @@ var dataTable;
 function paginate(){
     var tbody = $("table tbody").children();
     var count = $("table tbody tr").length;
-
-    console.log(tbody)
-    console.log(count);
-
+    var pages = $("#paginateSelect").val();
+    tbody.each(function(i){
+        if(i >= pages){
+            $(this).hide();
+        }else{
+            $(this).show();
+        }
+    });
 }
 
 function getTable(data, columns, rowClick){
@@ -199,6 +208,7 @@ function getTable(data, columns, rowClick){
         rowClick = function(){};
     }
     $("#tableSelector div button").removeClass("selected");
+    $("#districtsTableMessage").hide();
     //http://bl.ocks.org/jfreels/6734025
     //http://bl.ocks.org/AMDS/4a61497182b8fcb05906
     var table = d3.select("table");
@@ -218,11 +228,11 @@ function getTable(data, columns, rowClick){
 
     var rows = tbody.selectAll('tr')
     .data(data)
-    .on("click", rowClick(row));
+    .on("click", rowClick);
 
     rows.enter()
     .append('tr')
-    .on("click", rowClick(row))
+    .on("click", rowClick)
     .selectAll('td')
     .data( function(row){
         return columns.map( function(column){
@@ -248,7 +258,7 @@ function getTable(data, columns, rowClick){
 
     cells.exit().remove();
     paginate();
-    dataTable = $("table").DataTable();
+    //dataTable = $("table").DataTable();
     initialized = true;
 }
 
@@ -303,7 +313,6 @@ function findDistrict(point, borough){
 }
 
 function initMap() {
-    var nyu = {lat: 40.7291, lng: -73.9965};
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: 10,
       center: nyu
@@ -448,6 +457,7 @@ $("document").ready(function(){
     $("#getBuildingsData").click(buildingsTable);
     $("#getDistrictsData").click(districtsTable);
     $("#export").click(toCSV);
+    $("#paginateSelect").change(paginate);
 
     URL = window.location.href;
 })
