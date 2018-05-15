@@ -9,10 +9,8 @@ body {
     background-color: white;
 }
 
-
 #map{
     position: relative;
-    overflow: hidden;
     padding-bottom:40%;
 }
 

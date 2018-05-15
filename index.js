@@ -31,11 +31,12 @@ var drawOnlyHabitable = false;
 var sortAscending = true;
 
 function getData(){
-    $.when($.get(NY_district_shapes_URL), $.get(NY_district_names_URL), $.get(NY_building_URL))
-    .done(function(data1, data2, data3){
+    $.when($.get(NY_district_shapes_URL), $.get(NY_district_names_URL), $.get(NY_building_URL) )
+    .done(function(data1, data2, data3, data4){
          data1 = $.parseJSON(data1[2].responseText).features;
          data2 = data2[2].responseJSON.data;
          data3 = data3[2].responseJSON.data;
+         //console.log(data4);
          constructFeatures(data1);
          constructNames(data2);
          constructBuildings(data3);
@@ -148,7 +149,7 @@ function constructBuildings(data){
             if(parseInt(row.district.substring(3,5)) == districts[borodistricts[j]].borocd%100 ){
                 district = borodistricts[j];
                 row.district = district;
-                districts[district].score = Math.max(districts[district].score, row.extremely);
+                districts[district].score = Math.max(districts[district].score, row.low);
                 districts[district].buildings.push(i);
                 break;
             }
@@ -176,6 +177,28 @@ function districtsTable(){
     });
     $("#getDistrictsData").addClass("selected");
     $("#districtsTableMessage").show();
+}
+
+var topCalculated = false;
+
+function topDistrictsTable(){
+    if(!topCalculated){
+        var affordability = arr.zScores(districts.map(a => a.score));
+        var distances = arr.zScores(districts.map(a => a.distance));
+        var zscore = affordability.map(function(a,i){
+            return a + distances[i];
+        });
+        console.log("done");
+        districts = districts.map(function(a,i){
+            a.zscore = zscore[i];
+            return a;
+        })
+        var columns = ["id", "borough", "borocd","score","distance","zscore"];
+        getTable(districts, columns, function(row){
+            addDistrict(row.id);
+        });
+    }
+    topCalculated = true;
 }
 
 function sortByColumn(tbody, column){
@@ -456,6 +479,7 @@ $("document").ready(function(){
     $("#getData").click(neighborhoodsTable);
     $("#getBuildingsData").click(buildingsTable);
     $("#getDistrictsData").click(districtsTable);
+    $("#top").click(topDistrictsTable);
     $("#export").click(toCSV);
     $("#paginateSelect").change(paginate);
 
