@@ -2,12 +2,15 @@ body {
     font-family: Arial, sans-serif;
     padding-top: 3rem;
     background-color: #9090A5;
+    background: linear-gradient(to top, #304352, #d7d2cc);
 }
 
 .container {
     font-family: 'Roboto', sans-serif;
     background-color: white;
+    box-shadow:
 }
+
 
 #map{
     position: relative;

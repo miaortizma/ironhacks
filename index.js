@@ -308,6 +308,9 @@ function toLatLng(lat, lng){
 
 //https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
 function isContained(point, poly){
+    return google.maps.poly.containsLocation(point, poly);
+    //keep for fun, google maps api is probabily faster
+    /*
     var c = false;
     var x = point.lat;
     var y = point.lng;
@@ -320,6 +323,7 @@ function isContained(point, poly){
         j = i;
     }
     return c;
+    */
 }
 
 function inDistrict(point, district){
