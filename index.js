@@ -31,8 +31,91 @@ var drawMarkers = false;
 var drawOnlyHabitable = false;
 var sortAscending = true;
 
+
+//https://stackoverflow.com/questions/10024469/whats-the-best-way-to-retry-an-ajax-request-on-failure-using-jquery
+
+function method1(){
+    return $.ajax({
+        url : NY_district_shapes_URL,
+        type : 'GET',
+        tryCount: 0,
+        retryLimit: 3,
+        success : function(json){
+            console.log('Sucess shapes');
+        },
+        error : function(xhr, textStatus, errorThrown){
+            if(this.tryCount <= this.retryLimit){
+                this.tryCount++;
+                console.log("retry shapes");
+                $.ajax(this);
+            }
+        }
+    });
+
+}
+
+function method2(){
+    return $.ajax({
+        url : NY_district_names_URL,
+        type : 'GET',
+        tryCount: 0,
+        retryLimit: 3,
+        success : function(json){
+            console.log('Success names');
+        },
+        error : function(xhr, textStatus, errorThrown){
+            if(this.tryCount <= this.retryLimit){
+                this.tryCount++;
+                console.log("retry names");
+                $.ajax(this);
+                return;
+            }
+        }
+    });
+}
+
+function method3(){
+    return $.ajax({
+        url : NY_building_URL,
+        type : 'GET',
+        tryCount: 0,
+        retryLimit: 3,
+        success : function(json){
+            console.log('Success buildings');
+        },
+        error : function(xhr, textStatus, errorThrown){
+            if(this.tryCount <= this.retryLimit){
+                this.tryCount++;
+                console.log("retry buildings");
+                $.ajax(this);
+                return;
+            }
+        }
+    });
+}
+
+function method4(){
+    return $.ajax({
+        url : NY_crimes_URL,
+        type : 'GET',
+        tryCount: 0,
+        retryLimit: 3,
+        success : function(json){
+            console.log('Success crimes');
+        },
+        error : function(xhr, textStatus, errorThrown){
+            if(this.tryCount <= this.retryLimit){
+                this.tryCount++;
+                console.log("retry success");
+                $.ajax(this);
+                return;
+            }
+        }
+    });
+}
+
 function getData(){
-    $.when($.get(NY_district_shapes_URL), $.get(NY_district_names_URL), $.get(NY_building_URL), $.get(NY_crimes_URL) )
+     $.when(method1(), method2(), method3(), method4() )
     .done(function(data1, data2, data3, data4){
          data1 = $.parseJSON(data1[2].responseText).features;
          data2 = data2[2].responseJSON.data;
@@ -42,15 +125,18 @@ function getData(){
          constructNames(data2);
          constructBuildings(data3);
          constructCrimes(data4);
-         // TODO: Construct Crimes
          neighborhoodsTable();
      }).fail(function(){
+         $.when(this);
          alert("Couldn't connet to databases, try reloading the page");
      });
+
+     $.get('nyapple.svg', function(svg){
+         $("#svgTest").append(svg);
+     }, 'text');
 }
 
 function constructFeatures(districtsFeatures){
-    var uni = new google.maps.LatLng(nyu);
     for (var i = 0; i < districtsFeatures.length; i++) {
         var boroCD = districtsFeatures[i].properties.BoroCD;
         var boroughId = (boroCD/100>>0) - 1;
@@ -98,10 +184,12 @@ function constructFeatures(districtsFeatures){
             fillColor: color,
             fillOpacity: 0.35
         });
+        var LatLng = center.getPosition();
+        LatLng = {lat: LatLng.lat(), lng: LatLng.lng()};
         districts[i] = {id: i,
             path: coords,
             center: center,
-            distance: google.maps.geometry.spherical.computeDistanceBetween(uni, center.getPosition() ),
+            distance:distanceBetween(nyu, LatLng),
             borough: boroughId,
             borocd: boroCD,
             type: districtsFeatures[i].geometry.type,
@@ -109,6 +197,7 @@ function constructFeatures(districtsFeatures){
             habitable: habitable,
             score: 0,
             crimes: 0,
+            neighborhoods: [],
             buildings: []};
         }
 }
@@ -129,9 +218,6 @@ function constructNames(data){
             district = 42;
         }else{
             district = findDistrict(point, boroughsID[data[i][16]]);
-        }
-        if(districts[district].neighborhoods == undefined){
-            districts[district].neighborhoods = [];
         }
         districts[district].neighborhoods.push(i);
         infoRows.push({id: i,
@@ -166,13 +252,19 @@ function constructCrimes(data){
         point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
         district = findDistrict(point);
         if(district == -1){
-            console.log("i: " + i);
-            console.log(data[i]);
             addMarker(point,"CRIMENLOL");
             continue;
         }
+        crimes.push(point);
         districts[district].crimes++;
     }
+    //console.log(crimes);
+    crimes = crimes.map(x => new google.maps.LatLng(x));
+
+    var heatmap = new google.maps.visualization.HeatmapLayer({
+        data: crimes
+    });
+    heatmap.setMap(map);
 }
 
 function neighborhoodsTable(){
@@ -199,6 +291,7 @@ function districtsTable(){
 var topCalculated = false;
 
 function topDistrictsTable(){
+    var columns = ["id", "borough", "borocd","score","distance","crimes","zscore"];
     if(!topCalculated){
         var affordability = arr.zScores(districts.map(a => a.score));
         var distances = arr.zScores(districts.map(a => a.distance));
@@ -206,26 +299,34 @@ function topDistrictsTable(){
         var zscore = affordability.map(function(a,i){
             return a - distances[i] - crimes[i];
         });
-        console.log("done");
         districts = districts.map(function(a,i){
             a.zscore = zscore[i];
             return a;
-        })
-        var columns = ["id", "borough", "borocd","score","distance","crimes","zscore"];
-        getTable(districts, columns, function(row){
-            addDistrict(row.id);
         });
     }
+    getTable(districts, columns, function(row){
+        addDistrict(row.id);
+    });
+    $("#top").addClass("selected");
     topCalculated = true;
 }
 
 function sortByColumn(tbody, column){
+    var headers = $('table thead tr').children();
+    headers.removeClass('aes');
+    headers.removeClass('des');
+    console.log(headers);
+    var header = $('table thead tr').find('th:contains('+column+')');
+    console.log(header);
     if(sortAscending){
+        header.addClass('aes');
         tbody.selectAll('tr').sort(function(a,b){ return d3.ascending(a[column], b[column]); });
     }else{
+        header.addClass('des');
         tbody.selectAll('tr').sort(function(a,b){ return d3.descending(a[column], b[column]); });
     }
     sortAscending = !sortAscending;
+    paginate();
 }
 
 var dataTable;
@@ -306,27 +407,38 @@ function toLatLng(lat, lng){
     return {lat: lat, lng: lng};
 }
 
+//https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+function distanceBetween(A, B){
+    var lat1 = A.lat;
+    var lon1 = A.lng;
+    var lat2 = B.lat;
+    var lon2 = B.lng;
+    var p = 0.017453292519943295;    // Math.PI / 180
+    var c = Math.cos;
+    var a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+    return 12742 * Math.asin(Math.sqrt(a))
+}
+
 //https://wrf.ecse.rpi.edu//Research/Short_Notes/pnpoly.html
 function isContained(point, poly){
-    return google.maps.poly.containsLocation(point, poly);
+    //return google.maps.geometry.poly.containsLocation(point, poly);
     //keep for fun, google maps api is probabily faster
-    /*
+
     var c = false;
     var x = point.lat;
     var y = point.lng;
     var j = poly.length - 1;
     for (var i = 0; i < poly.length; i++) {
         if (  (poly[i].lng > y) != (poly[j].lng > y) &&  x < poly[i].lat + (poly[j].lat - poly[i].lat) * (y - poly[i].lng) / (poly[j].lng - poly[i].lng) ) {
-            //addPolyline([poly[j], poly[i]]);
             c = !c;
         }
         j = i;
     }
     return c;
-    */
 }
 
 function inDistrict(point, district){
+    //return google.maps.geometry.poly.containsLocation(point, districts[district].polygon);
     if(districts[district].type == "MultiPolygon"){
         for (var j = 0; j < districts[district].path.length; j++) {
             if(isContained(point, districts[district].path[j])){

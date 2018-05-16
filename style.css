@@ -1,16 +1,30 @@
 body {
     font-family: Arial, sans-serif;
-    padding-top: 3rem;
+    padding-top: 10%;
     background-color: #9090A5;
     background: linear-gradient(to top, #304352, #d7d2cc);
+}
+
+th.des:after{
+    content: "\21E9";
+}
+
+th.aes:after{
+    content: "\21E7";
 }
 
 .container {
     font-family: 'Roboto', sans-serif;
     background-color: white;
-    box-shadow:
+    width: 100%;
+    box-shadow: 5px 10px;
 }
 
+#svg{
+    width: 30px;
+    height: 30px;
+    visibility: hidden;
+}
 
 #map{
     position: relative;
@@ -40,6 +54,10 @@ button {
     background-color: #13124F;
     color: white;
     font-family: 'Roboto', sans-serif;
+}
+
+.grey-bg{
+    background-color: #9090A5;
 }
 
 .blue-bg{
