@@ -14,21 +14,23 @@ Borough no:
 */
 
 var boroughsID = {"Manhattan": 0, "Bronx": 1, "Brooklyn": 2, "Queens": 3, "Staten Island": 4};
-var boroughs = [{name: "Manhattan", habitable: 12},
-                {name: "Bronx", habitable: 12, districts: []},
-                {name: "Brooklyn", habitable: 18, districts: []},
-                {name: "Queens", habitable: 14, districts: []},
-                {name: "Staten Island", habitable: 3, districts: []}];
+var boroughs = [{name: "Manhattan", habitable: 12, districts: [], crimes: []},
+                {name: "Bronx", habitable: 12, districts: [], crimes: []},
+                {name: "Brooklyn", habitable: 18, districts: [], crimes: []},
+                {name: "Queens", habitable: 14, districts: [], crimes: []},
+                {name: "Staten Island", habitable: 3, districts: [], crimes: []}];
 
 var districts = new Array(71);
 var infoRows = [];
 var buildings = [];
 var crimes = [];
 var map;
+var heatmap;
 var markers = [];
 var nyu = {lat: 40.7291, lng: -73.9965};
 var drawMarkers = false;
 var drawOnlyHabitable = false;
+var drawCrimes = false;
 var sortAscending = true;
 
 
@@ -133,7 +135,9 @@ function getData(){
 
      $.get('nyapple.svg', function(svg){
          $("#svgTest").append(svg);
-     }, 'text');
+     }, 'text').fail(function(){
+         console.log("wtf");
+     });
 }
 
 function constructFeatures(districtsFeatures){
@@ -143,9 +147,6 @@ function constructFeatures(districtsFeatures){
         var districtId = boroCD%100;
         var data = districtsFeatures[i].geometry.coordinates;
         var coords = [];
-        if(boroughs[boroughId].districts == undefined){
-            boroughs[boroughId].districts = [];
-        }
         boroughs[boroughId].districts.push(i);
         var dataRow;
         var bounds = new google.maps.LatLngBounds();
@@ -248,6 +249,7 @@ function constructBuildings(data){
 }
 
 function constructCrimes(data){
+    var boroughaltID = {"MANHATTAN": 0,"BRONX": 1,"BROOKLYN": 2,"QUEENS": 3,"STATEN ISLAND":4};
     for (var i = 0; i < data.length; i++) {
         point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
         district = findDistrict(point);
@@ -257,14 +259,20 @@ function constructCrimes(data){
         }
         crimes.push(point);
         districts[district].crimes++;
+        boroughs[boroughaltID[data[i][21]]].crimes.push(point);
     }
-    //console.log(crimes);
-    crimes = crimes.map(x => new google.maps.LatLng(x));
+    for (var i = 0; i < 5; i++) {
+        boroughs[i].crimes = boroughs[i].crimes.map(x => new google.maps.LatLng(x));
+        boroughs[i].heatmap = new google.maps.visualization.HeatmapLayer({data: boroughs[i].crimes});
+    }
+}
 
-    var heatmap = new google.maps.visualization.HeatmapLayer({
-        data: crimes
-    });
-    heatmap.setMap(map);
+function showCrimes(){
+    if(drawCrimes){
+        heatmap.setMap(map);
+    }else{
+        heatmap.setMap(null);
+    }
 }
 
 function neighborhoodsTable(){
@@ -304,7 +312,7 @@ function topDistrictsTable(){
             return a;
         });
     }
-    getTable(districts, columns, function(row){
+    getTable(districts.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
     });
     $("#top").addClass("selected");
@@ -315,9 +323,7 @@ function sortByColumn(tbody, column){
     var headers = $('table thead tr').children();
     headers.removeClass('aes');
     headers.removeClass('des');
-    console.log(headers);
     var header = $('table thead tr').find('th:contains('+column+')');
-    console.log(header);
     if(sortAscending){
         header.addClass('aes');
         tbody.selectAll('tr').sort(function(a,b){ return d3.ascending(a[column], b[column]); });
@@ -531,9 +537,13 @@ function addDistrict(a){
         removeDistrict(a);
         return;
     }
-    districts[a].polygon.setMap(map);
+    if(!districts[a].polygon.getMap()){
+        districts[a].polygon.setMap(map);
+    }
     if(drawMarkers){
-        districts[a].center.setMap(map);
+        if(!districts[a].center.getMap()){
+            districts[a].center.setMap(map);
+        }
     }else{
         districts[a].center.setMap(null);
     }
@@ -547,6 +557,13 @@ function addBorough(a){
     boroDistricts = boroughs[a].districts;
     for (var i = 0; i < boroDistricts.length; i++) {
         addDistrict(boroDistricts[i]);
+    }
+    if(drawCrimes){
+        if(!boroughs[a].heatmap.getMap()){
+            boroughs[a].heatmap.setMap(map);
+        }
+    }else{
+        boroughs[a].heatmap.setMap(null);
     }
 }
 
@@ -566,6 +583,7 @@ function clearMarkers(){
 function checkDrawLimits(){
     drawOnlyHabitable = $("#drawCB1")[0].checked;
     drawMarkers = $("#drawCB2")[0].checked;
+    drawCrimes = $("#drawCB3")[0].checked;
 }
 
 function addDistrictInput(){
@@ -600,6 +618,15 @@ function addNeighbour(a){
 
 function toCSV(){
     $("#neighborhoodTable").tableToCSV();
+}
+
+function test(){
+    for (var i = 0; i < districts.length; i++) {
+        if(districts[i].neighborhoods.length == 0){
+            console.log(districts[i].neighborhoods);
+            addDistrict(i);
+        }
+    }
 }
 
 $("document").ready(function(){
