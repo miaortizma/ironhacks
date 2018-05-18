@@ -45,7 +45,6 @@ function method1(){
         tryCount: 0,
         retryLimit: 3,
         success : function(json){
-            console.log(json);
             console.log('Success shapes');
         },
         error : function(xhr, textStatus, errorThrown){
@@ -158,16 +157,16 @@ function constructFeatures(districtsFeatures){
             districtsFeatures[i].geometry.type = 'MultiPolygon';
             for (var j = 0; j < data.length; j++) {
                 var path = [];
+
+
+                dataRow = data[j][0];
                 /*Really don't understand this,
                 page works fine in FF but
                 needs this extra handling for chrome wtf..
                 */
-                /*if(isChrome){
+                if(dataRow[0][0] === undefined){
                     dataRow = data[j];
-                }else{
-                    dataRow = data[j][0];
-                }*/
-                dataRow = data[j][0];
+                }
                 for (var k = 0; k < dataRow.length; k++) {
                     path.push({lat: dataRow[k][1], lng: dataRow[k][0]});
                 }
@@ -487,7 +486,7 @@ function findDistrict(point, borough){
     return -1;
 }
 
-function initMap() {
+window.initMap = function() {
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: 10,
       center: {lat: 40.7291, lng: -73.9965},
@@ -859,7 +858,6 @@ function toCSV(){
 function test(){
     for (var i = 0; i < districts.length; i++) {
         if(districts[i].neighborhoods.length == 0){
-            console.log(districts[i].neighborhoods);
             addDistrict(i);
         }
     }
@@ -892,8 +890,6 @@ function d3test(featureCollection){
 
     var geoGenerator = d3.geoPath()
     .projection(projection);
-
-    console.log(featureCollection.features[0]);
 
     if(context){
         var context = d3.select('canvas')
