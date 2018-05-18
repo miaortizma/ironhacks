@@ -477,7 +477,7 @@ function findDistrict(point, borough){
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: 10,
-      center: nyu
+      center: {lat: 40.7291, lng: -73.9965}
     });
     addMarker(nyu, "NYU");
     //map.data.loadGeoJson(NY_district_shapes_URL);
