@@ -1,7 +1,7 @@
-var NY_district_shapes_URL = "https://services5.arcgis.com/GfwWNkhOj9bNBqoJ/arcgis/rest/services/nycd/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson";
-var NY_district_names_URL = "https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD";
-var NY_crimes_URL = "https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD";
-var NY_building_URL = "https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD";
+var NY_district_shapes_URL = 'https://services5.arcgis.com/GfwWNkhOj9bNBqoJ/arcgis/rest/services/nycd/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson';
+var NY_district_names_URL = 'https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD';
+var NY_crimes_URL = 'https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD';
+var NY_building_URL = 'https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD';
 var URL;
 /*
 Borough no:
@@ -13,12 +13,12 @@ Borough no:
 
 */
 
-var boroughsID = {"Manhattan": 0, "Bronx": 1, "Brooklyn": 2, "Queens": 3, "Staten Island": 4};
-var boroughs = [{name: "Manhattan", habitable: 12, districts: [], crimes: []},
-                {name: "Bronx", habitable: 12, districts: [], crimes: []},
-                {name: "Brooklyn", habitable: 18, districts: [], crimes: []},
-                {name: "Queens", habitable: 14, districts: [], crimes: []},
-                {name: "Staten Island", habitable: 3, districts: [], crimes: []}];
+var boroughsID = {'Manhattan': 0, 'Bronx': 1, 'Brooklyn': 2, 'Queens': 3, 'Staten Island': 4};
+var boroughs = [{name: 'Manhattan', habitable: 12, districts: [], crimes: []},
+                {name: 'Bronx', habitable: 12, districts: [], crimes: []},
+                {name: 'Brooklyn', habitable: 18, districts: [], crimes: []},
+                {name: 'Queens', habitable: 14, districts: [], crimes: []},
+                {name: 'Staten Island', habitable: 3, districts: [], crimes: []}];
 
 var districts = new Array(71);
 var infoRows = [];
@@ -51,7 +51,7 @@ function method1(){
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
                 this.tryCount++;
-                console.log("retry shapes");
+                console.log('retry shapes');
                 $.ajax(this);
             }
         }
@@ -71,7 +71,7 @@ function method2(){
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
                 this.tryCount++;
-                console.log("retry names");
+                console.log('retry names');
                 $.ajax(this);
                 return;
             }
@@ -91,7 +91,7 @@ function method3(){
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
                 this.tryCount++;
-                console.log("retry buildings");
+                console.log('retry buildings');
                 $.ajax(this);
                 return;
             }
@@ -111,7 +111,7 @@ function method4(){
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
                 this.tryCount++;
-                console.log("retry success");
+                console.log('retry success');
                 $.ajax(this);
                 return;
             }
@@ -133,13 +133,13 @@ function getData(){
          topDistrictsTable();
      }).fail(function(){
          $.when(this);
-         alert("Couldn't connet to databases, try reloading the page");
+         alert('Couldn\'t connet to databases, try reloading the page');
      });
 
      $.get('nyapple.svg', function(svg){
-         $("#svgTest").append($(svg).attr("id", "navbarIcon"));
+         $('#svgTest').append($(svg).attr('id', 'navbarIcon'));
      }, 'text').fail(function(){
-         console.log("wtf");
+         console.log('wtf');
      });
 }
 
@@ -155,7 +155,7 @@ function constructFeatures(districtsFeatures){
         boroughs[boroughId].districts.push(i);
         var dataRow;
         if(data.length > 1){
-            districtsFeatures[i].geometry.type = "MultiPolygon";
+            districtsFeatures[i].geometry.type = 'MultiPolygon';
             for (var j = 0; j < data.length; j++) {
                 var path = [];
                 /*Really don't understand this,
@@ -181,7 +181,7 @@ function constructFeatures(districtsFeatures){
         }
         var centroid = d3.geoCentroid(districtsFeatures[i]);
         centroid = {lat: centroid[1], lng: centroid[0]};
-        var center = getMarker(centroid,"borocd "+ boroCD + ":" + i);
+        var center = getMarker(centroid,'borocd '+ boroCD + ':' + i);
         var color;
         var habitable;
         if(districtId > boroughs[boroughId].habitable){
@@ -219,15 +219,15 @@ function constructFeatures(districtsFeatures){
 function constructNames(data){
     for (var i = 0; i < data.length; i++) {
         point = data[i][9];
-        point = point.substring(7, point.length - 1).split(" ");
+        point = point.substring(7, point.length - 1).split(' ');
         //Fulton Ferry and Mill Island centroids are outside of actual district bounds
         var district;
         point = toLatLng(parseFloat(point[1]), parseFloat(point[0]));
-        if(data[i][10] == "Fulton Ferry"){
+        if(data[i][10] == 'Fulton Ferry'){
             district = 70;
-        }else if(data[i][10] == "Mill Island"){
+        }else if(data[i][10] == 'Mill Island'){
             district = 55;
-        }else if(data[i][10] == "Marble Hill"){
+        }else if(data[i][10] == 'Marble Hill'){
             //Marbel Hill is legaly in Manhattan but geografically in Bronx
             district = 42;
         }else{
@@ -244,7 +244,7 @@ function constructNames(data){
 }
 
 function constructBuildings(data){
-    var boroughaltID = {"MN": 0,"BX": 1,"BK": 2,"QN": 3,"SI":4};
+    var boroughaltID = {'MN': 0,'BX': 1,'BK': 2,'QN': 3,'SI':4};
     for (var i = 0; i < data.length; i++) {
         row = {borough: data[i][15], lat: data[i][23], lng: data[i][24], district: data[i][19], extremely: data[i][31], very: data[i][32], low: data[i][33], moderate: data[i][34]};
         var borodistricts = boroughs[boroughsID[row.borough]].districts;
@@ -262,12 +262,12 @@ function constructBuildings(data){
 }
 
 function constructCrimes(data){
-    var boroughaltID = {"MANHATTAN": 0,"BRONX": 1,"BROOKLYN": 2,"QUEENS": 3,"STATEN ISLAND":4};
+    var boroughaltID = {'MANHATTAN': 0,'BRONX': 1,'BROOKLYN': 2,'QUEENS': 3,'STATEN ISLAND':4};
     for (var i = 0; i < data.length; i++) {
         point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
         district = findDistrict(point);
         if(district == -1){
-            addMarker(point,"CRIMENLOL");
+            addMarker(point,'CRIMENLOL');
             continue;
         }
         crimes.push(point);
@@ -291,28 +291,28 @@ function showCrimes(){
 function neighborhoodsTable(){
     var columns = ['id','lat','lng','name','borough','district'];
     getTable(infoRows, columns);
-    $("#getData").addClass("selected");
+    $('#getData').addClass('selected');
 }
 
 function buildingsTable(){
     var columns  = ['borough', 'district', 'lat', 'lng'];
     getTable(buildings, columns);
-    $("#getBuildingsData").addClass("selected");
+    $('#getBuildingsData').addClass('selected');
 }
 
 function districtsTable(){
-    var columns = ["id", "borough", "borocd", "score","distance","crimes"];
+    var columns = ['id', 'borough', 'borocd', 'score','distance','crimes'];
     getTable(districts, columns, function(row){
         addDistrict(row.id);
     });
-    $("#getDistrictsData").addClass("selected");
-    $("#districtsTableMessage").show();
+    $('#getDistrictsData').addClass('selected');
+    $('#districtsTableMessage').show();
 }
 
 var topCalculated = false;
 
 function topDistrictsTable(){
-    var columns = ["id", "borough", "borocd","score","distance","crimes","zscore"];
+    var columns = ['id', 'borough', 'borocd','score','distance','crimes','zscore'];
     if(!topCalculated){
         var affordability = arr.zScores(districts.map(a => a.score));
         var distances = arr.zScores(districts.map(a => a.distance));
@@ -328,7 +328,7 @@ function topDistrictsTable(){
     getTable(districts.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
     });
-    $("#top").addClass("selected");
+    $('#top').addClass('selected');
     topCalculated = true;
 }
 
@@ -351,9 +351,9 @@ function sortByColumn(tbody, column){
 var dataTable;
 
 function paginate(){
-    var tbody = $("table tbody").children();
-    var count = $("table tbody tr").length;
-    var pages = $("#paginateSelect").val();
+    var tbody = $('table tbody').children();
+    var count = $('table tbody tr').length;
+    var pages = $('#paginateSelect').val();
     tbody.each(function(i){
         if(i >= pages){
             $(this).hide();
@@ -367,33 +367,33 @@ function getTable(data, columns, rowClick){
     if(rowClick == undefined){
         rowClick = function(){};
     }
-    $("#tableSelector div button").removeClass("selected");
-    $("#districtsTableMessage").hide();
+    $('#tableSelector div button').removeClass('selected');
+    $('#districtsTableMessage').hide();
     //http://bl.ocks.org/jfreels/6734025
     //http://bl.ocks.org/AMDS/4a61497182b8fcb05906
     //https://stackoverflow.com/questions/32871044/how-to-update-d3-table
-    var table = d3.select("table");
+    var table = d3.select('table');
     var thead = table.select('thead').select('tr');
     var tbody = table.select('tbody');
     thead = thead.selectAll('th')
     .data(columns)
     .text( function(column) { return column;})
-    .on("click",function(column){sortByColumn(tbody,column)});
+    .on('click',function(column){sortByColumn(tbody,column)});
 
     thead.enter()
     .append('th')
     .text(function (column) { return column;})
-    .on("click",function(column){sortByColumn(tbody,column)});
+    .on('click',function(column){sortByColumn(tbody,column)});
 
     thead.exit().remove();
 
     var rows = tbody.selectAll('tr')
     .data(data)
-    .on("click", rowClick);
+    .on('click', rowClick);
 
     rows.enter()
     .append('tr')
-    .on("click", rowClick)
+    .on('click', rowClick)
     .selectAll('td')
     .data( function(row){
         return columns.map( function(column){
@@ -419,7 +419,7 @@ function getTable(data, columns, rowClick){
 
     cells.exit().remove();
     paginate();
-    //dataTable = $("table").DataTable();
+    //dataTable = $('table').DataTable();
 }
 
 function toLatLng(lat, lng){
@@ -458,7 +458,7 @@ function isContained(point, poly){
 
 function inDistrict(point, district){
     //return google.maps.geometry.poly.containsLocation(point, districts[district].polygon);
-    if(districts[district].type == "MultiPolygon"){
+    if(districts[district].type == 'MultiPolygon'){
         for (var j = 0; j < districts[district].path.length; j++) {
             if(isContained(point, districts[district].path[j])){
                 return true;
@@ -493,228 +493,228 @@ function initMap() {
       center: {lat: 40.7291, lng: -73.9965},
       styles: [
           {
-              "elementType": "geometry",
-              "stylers": [
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#212121"
+                      'color': '#212121'
                   }
               ]
           },
           {
-              "elementType": "labels.icon",
-              "stylers": [
+              'elementType': 'labels.icon',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#757575"
+                      'color': '#757575'
                   }
               ]
           },
           {
-              "elementType": "labels.text.stroke",
-              "stylers": [
+              'elementType': 'labels.text.stroke',
+              'stylers': [
                   {
-                      "color": "#212121"
+                      'color': '#212121'
                   }
               ]
           },
           {
-              "featureType": "administrative",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'administrative',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#757575"
+                      'color': '#757575'
                   }
               ]
           },
           {
-              "featureType": "administrative.country",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'administrative.country',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#9e9e9e"
+                      'color': '#9e9e9e'
                   }
               ]
           },
           {
-              "featureType": "administrative.land_parcel",
-              "elementType": "labels",
-              "stylers": [
+              'featureType': 'administrative.land_parcel',
+              'elementType': 'labels',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "featureType": "administrative.locality",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'administrative.locality',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#bdbdbd"
+                      'color': '#bdbdbd'
                   }
               ]
           },
           {
-              "featureType": "poi",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'poi',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#757575"
+                      'color': '#757575'
                   }
               ]
           },
           {
-              "featureType": "poi.park",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'poi.park',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#181818"
+                      'color': '#181818'
                   }
               ]
           },
           {
-              "featureType": "poi.park",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'poi.park',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#616161"
+                      'color': '#616161'
                   }
               ]
           },
           {
-              "featureType": "poi.park",
-              "elementType": "labels.text.stroke",
-              "stylers": [
+              'featureType': 'poi.park',
+              'elementType': 'labels.text.stroke',
+              'stylers': [
                   {
-                      "color": "#1b1b1b"
+                      'color': '#1b1b1b'
                   }
               ]
           },
           {
-              "featureType": "road",
-              "elementType": "geometry.fill",
-              "stylers": [
+              'featureType': 'road',
+              'elementType': 'geometry.fill',
+              'stylers': [
                   {
-                      "color": "#2c2c2c"
+                      'color': '#2c2c2c'
                   }
               ]
           },
           {
-              "featureType": "road",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'road',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#8a8a8a"
+                      'color': '#8a8a8a'
                   }
               ]
           },
           {
-              "featureType": "road.arterial",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'road.arterial',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#373737"
+                      'color': '#373737'
                   }
               ]
           },
           {
-              "featureType": "road.arterial",
-              "elementType": "labels",
-              "stylers": [
+              'featureType': 'road.arterial',
+              'elementType': 'labels',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "featureType": "road.highway",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'road.highway',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#3c3c3c"
+                      'color': '#3c3c3c'
                   }
               ]
           },
           {
-              "featureType": "road.highway",
-              "elementType": "labels",
-              "stylers": [
+              'featureType': 'road.highway',
+              'elementType': 'labels',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "featureType": "road.highway.controlled_access",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'road.highway.controlled_access',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#4e4e4e"
+                      'color': '#4e4e4e'
                   }
               ]
           },
           {
-              "featureType": "road.local",
-              "stylers": [
+              'featureType': 'road.local',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "featureType": "road.local",
-              "elementType": "labels",
-              "stylers": [
+              'featureType': 'road.local',
+              'elementType': 'labels',
+              'stylers': [
                   {
-                      "visibility": "off"
+                      'visibility': 'off'
                   }
               ]
           },
           {
-              "featureType": "road.local",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'road.local',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#616161"
+                      'color': '#616161'
                   }
               ]
           },
           {
-              "featureType": "transit",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'transit',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#757575"
+                      'color': '#757575'
                   }
               ]
           },
           {
-              "featureType": "water",
-              "elementType": "geometry",
-              "stylers": [
+              'featureType': 'water',
+              'elementType': 'geometry',
+              'stylers': [
                   {
-                      "color": "#000000"
+                      'color': '#000000'
                   }
               ]
           },
           {
-              "featureType": "water",
-              "elementType": "labels.text.fill",
-              "stylers": [
+              'featureType': 'water',
+              'elementType': 'labels.text.fill',
+              'stylers': [
                   {
-                      "color": "#3d3d3d"
+                      'color': '#3d3d3d'
                   }
               ]
           }
       ]
     });
-    addMarker(nyu, "NYU");
+    addMarker(nyu, 'NYU');
     //map.data.loadGeoJson(NY_district_shapes_URL);
 }
 
@@ -745,7 +745,7 @@ function addPolyline(coords){
 
 function removeDistrict(a){
     if(isNaN(a) || a < 0 || a > 70){
-        console.log("Bad removeDistrict");
+        console.log('Bad removeDistrict');
         return;
     }
     districts[a].polygon.setMap(null);
@@ -754,7 +754,7 @@ function removeDistrict(a){
 
 function removeBorough(a){
     if(isNaN(a) || a < 0 || a > 4){
-        console.log("bad");
+        console.log('bad');
         return;
     }
     boroDistricts = boroughs[a].districts;
@@ -766,7 +766,7 @@ function removeBorough(a){
 
 function addDistrict(a){
     if(isNaN(a) || a < 0 || a > 70){
-        console.log("Bad addDistrict");
+        console.log('Bad addDistrict');
         return;
     }
     if(drawOnlyHabitable && !districts[a].habitable){
@@ -787,7 +787,7 @@ function addDistrict(a){
 
 function addBorough(a){
     if(isNaN(a) || a < 0 || a > 4){
-        console.log("Borough No must be less than 6");
+        console.log('Borough No must be less than 6');
         return;
     }
     boroDistricts = boroughs[a].districts;
@@ -817,26 +817,26 @@ function clearMarkers(){
 }
 
 function checkDrawLimits(){
-    drawOnlyHabitable = $("#drawCB1")[0].checked;
-    drawMarkers = $("#drawCB2")[0].checked;
-    drawCrimes = $("#drawCB3")[0].checked;
+    drawOnlyHabitable = $('#drawCB1')[0].checked;
+    drawMarkers = $('#drawCB2')[0].checked;
+    drawCrimes = $('#drawCB3')[0].checked;
 }
 
 function addDistrictInput(){
     checkDrawLimits();
-    var a = parseInt($("#districtNo").val());
+    var a = parseInt($('#districtNo').val());
     addDistrict(a-1);
 }
 
 function addBoroughInput(){
     checkDrawLimits();
-    var a = parseInt($("#boroughNo").val());
+    var a = parseInt($('#boroughNo').val());
     addBorough(a-1);
 }
 
 function addBoroughsCheckBoxes(){
     checkDrawLimits();
-    var checkBoxes = $("#boroughCheckboxes input:checkbox").each(function(i){
+    var checkBoxes = $('#boroughCheckboxes input:checkbox').each(function(i){
         if(this.checked){
             addBorough(i);
         }else{
@@ -853,7 +853,7 @@ function addNeighbour(a){
 }
 
 function toCSV(){
-    $("#neighborhoodTable").tableToCSV();
+    $('#neighborhoodTable').tableToCSV();
 }
 
 function test(){
@@ -874,7 +874,7 @@ function handleMouseover(d,i){
     var centroid = districts[i].centroid;
 
     d3.select('#geoinfo')
-    .text("BoroCD "+ d.properties.BoroCD + " centroid: " + centroid.lat + " " + centroid.lng)
+    .text('BoroCD '+ d.properties.BoroCD + ' centroid: ' + centroid.lat + ' ' + centroid.lng)
 }
 
 var features;
@@ -896,10 +896,10 @@ function d3test(featureCollection){
     console.log(featureCollection.features[0]);
 
     if(context){
-        var context = d3.select("canvas")
-        .attr("width", size + padding*2)
-        .attr("height", size + padding*2)
-        .style("border", "2px solid steelblue")
+        var context = d3.select('canvas')
+        .attr('width', size + padding*2)
+        .attr('height', size + padding*2)
+        .style('border', '2px solid steelblue')
         .node()
         .getContext('2d');
 
@@ -924,17 +924,17 @@ function d3test(featureCollection){
             context.stroke();
         }
     }else{
-        var svg = d3.select("#d3 svg")
-        .attr("width", size + padding*2)
-        .attr("height", size + padding*2)
-        .style("border", "2px solid steelblue");
+        var svg = d3.select('#d3 svg')
+        .attr('width', size + padding*2)
+        .attr('height', size + padding*2)
+        .style('border', '2px solid steelblue');
 
         if(graticule){
             var graticule = d3.geoGraticule().step([0.2,0.2]);
 
-            svg.append("path")
+            svg.append('path')
             .datum(graticule)
-            .attr("class", "graticule")
+            .attr('class', 'graticule')
             .attr('d', geoGenerator);
         }
 
@@ -955,19 +955,19 @@ function d3test(featureCollection){
 }
 
 
-$("document").ready(function(){
+$('document').ready(function(){
     getData();
     //getBuildings();
-    $("#getNYDistrictShape").click(addDistrictInput);
-    $("#getNYBoroughShape").click(addBoroughInput);
-    $("#addBoroughsCheckBoxes").click(addBoroughsCheckBoxes);
-    $("#clearBorders").click(clearBorders);
-    $("#getData").click(neighborhoodsTable);
-    $("#getBuildingsData").click(buildingsTable);
-    $("#getDistrictsData").click(districtsTable);
-    $("#top").click(topDistrictsTable);
-    $("#export").click(toCSV);
-    $("#paginateSelect").change(paginate);
+    $('#getNYDistrictShape').click(addDistrictInput);
+    $('#getNYBoroughShape').click(addBoroughInput);
+    $('#addBoroughsCheckBoxes').click(addBoroughsCheckBoxes);
+    $('#clearBorders').click(clearBorders);
+    $('#getData').click(neighborhoodsTable);
+    $('#getBuildingsData').click(buildingsTable);
+    $('#getDistrictsData').click(districtsTable);
+    $('#top').click(topDistrictsTable);
+    $('#export').click(toCSV);
+    $('#paginateSelect').change(paginate);
 
     URL = window.location.href;
 })
