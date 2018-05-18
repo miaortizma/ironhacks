@@ -33,6 +33,8 @@ var drawOnlyHabitable = false;
 var drawCrimes = false;
 var sortAscending = true;
 
+var isChrome = !!window.chrome && !!window.chrome.webstore;
+
 
 //https://stackoverflow.com/questions/10024469/whats-the-best-way-to-retry-an-ajax-request-on-failure-using-jquery
 
@@ -43,7 +45,7 @@ function method1(){
         tryCount: 0,
         retryLimit: 3,
         success : function(json){
-            console.log('Sucess shapes');
+            console.log('Success shapes');
         },
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
@@ -151,12 +153,20 @@ function constructFeatures(districtsFeatures){
         var dataRow;
         var bounds = new google.maps.LatLngBounds();
         if(data.length > 1){
+            districtsFeatures[i].geometry.type = "MultiPolygon";
             for (var j = 0; j < data.length; j++) {
                 var path = [];
-                dataRow = data[j][0];
+                /*Really don't understand this,
+                page works fine in FF but
+                needs this extra handling for chrome wtf..
+                */
+                if(isChrome){
+                    dataRow = data[j];
+                }else{
+                    dataRow = data[j][0];
+                }
                 for (var k = 0; k < dataRow.length; k++) {
                     path.push({lat: dataRow[k][1], lng: dataRow[k][0]});
-                    console.log(path[k]);
                     bounds.extend(path[k]);
                 }
                 coords.push(path);
