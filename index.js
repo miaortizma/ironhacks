@@ -156,6 +156,7 @@ function constructFeatures(districtsFeatures){
                 dataRow = data[j][0];
                 for (var k = 0; k < dataRow.length; k++) {
                     path.push({lat: dataRow[k][1], lng: dataRow[k][0]});
+                    console.log(path[k]);
                     bounds.extend(path[k]);
                 }
                 coords.push(path);
