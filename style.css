@@ -35,9 +35,13 @@ table{
     text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
 
-svg{
+#navbarIcon{
     width: 30px;
     height: 30px;
+}
+
+svg:hover{
+    fill : yellow;
 }
 
 #map{
