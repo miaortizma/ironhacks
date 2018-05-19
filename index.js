@@ -401,7 +401,7 @@ function getTable(data, columns, rowClick){
     })
     .enter()
     .append('td')
-    .text(function(d){return d.value;});
+    .text(function(d){ return d.value; });
 
     rows.exit().remove();
 
@@ -852,7 +852,10 @@ function addNeighbour(a){
 }
 
 function toCSV(){
-    $('#neighborhoodTable').tableToCSV();
+    //https://forums.asp.net/t/1985239.aspx?How+to+remove+style+display+none+columns+when+exporting+an+HTML+table+to+Excel+
+    var table = $('#neighborhoodTable').clone();
+    table.find('[style*="display: none"]').remove();
+    table.tableToCSV();
 }
 
 function test(){
@@ -878,15 +881,16 @@ function handleMouseover(d,i){
 var features;
 
 function d3test(featureCollection){
-    var size = 600;
+    var size = parseInt(d3.select("#geoinfo").style("width"));
     var padding = 20;
+    size = size - 2*padding;
     var context = false, graticule = false;
-
+    console.log(size);
     features = featureCollection;
 
     var projection = d3.geoOrthographic()
-    .rotate([100,0])
-    .fitExtent([[padding,padding],[size + padding,size + padding]], featureCollection);
+    .rotate([90,0])
+    .fitExtent([[padding,padding],[size,size]], featureCollection);
 
     var geoGenerator = d3.geoPath()
     .projection(projection);
