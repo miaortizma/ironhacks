@@ -879,54 +879,79 @@ function handleMouseover(d,i){
 }
 
 var features;
+var projection;
+var path;
+var mapRatio = 0.5;
+
+d3.select(window).on('resize', resize);
+
+//http://eyeseast.github.io/visible-data/2013/08/26/responsive-d3/
+function resize(){
+    var width = parseInt(d3.select("#geoinfo").style("width"));
+    var padding = 10;
+    width = width - 2*padding;
+    height = width * mapRatio;
+    projection.fitExtent([[padding,padding],[width,height]], features);
+
+    var svg = d3.select('#d3 svg')
+    .attr('width', width + padding*2)
+    .attr('height', height + padding*2);
+
+    svg.selectAll('path')
+    .attr('d', path);
+}
 
 function d3test(featureCollection){
-    var size = parseInt(d3.select("#geoinfo").style("width"));
-    var padding = 20;
-    size = size - 2*padding;
+    var width = parseInt(d3.select("#geoinfo").style("width"));
+    var padding = 10;
+    height = width * mapRatio;
     var context = false, graticule = false;
-    console.log(size);
     features = featureCollection;
 
-    var projection = d3.geoOrthographic()
+    projection = d3.geoOrthographic()
     .rotate([90,0])
-    .fitExtent([[padding,padding],[size,size]], featureCollection);
+    .fitExtent([[padding,0],[width,height]], featureCollection);
 
-    var geoGenerator = d3.geoPath()
+    path = d3.geoPath()
     .projection(projection);
+
+    //http://bl.ocks.org/nbremer/a43dbd5690ccd5ac4c6cc392415140e7
+    /*var colorScale = d3.scale.linear()
+	.domain([-15, 7.5, 30])
+	.range(["#2c7bb6", "#ffff8c", "#d7191c"])
+	.interpolate(d3.interpolateHcl);*/
 
     if(context){
         var context = d3.select('canvas')
-        .attr('width', size + padding*2)
-        .attr('height', size + padding*2)
-        .style('border', '2px solid steelblue')
+        .attr('width', width)
+        .attr('height', height)
         .node()
         .getContext('2d');
 
-        geoGenerator.context(context);
+        path.context(context);
 
         context.beginPath();
         context.lineWidth = 0.5;
         context.strokeStyle = '#333';
-        geoGenerator(featureCollection);
+        path(featureCollection);
         context.stroke();
 
         context.beginPath();
         context.setLineDash([2, 2]);
-        context.rect(padding, padding, size, size);
+        context.rect(padding, 0, width - 2*padding, height);
         context.stroke();
 
         if(graticule){
             var graticule = d3.geoGraticule().step([0.2,0.2]);
             context.beginPath();
             context.strokeStyle = '#ccc';
-            geoGenerator(graticule());
+            path(graticule());
             context.stroke();
         }
     }else{
         var svg = d3.select('#d3 svg')
-        .attr('width', size + padding*2)
-        .attr('height', size + padding*2)
+        .attr('width', width)
+        .attr('height', height)
         .style('border', '2px solid steelblue');
 
         if(graticule){
@@ -935,7 +960,7 @@ function d3test(featureCollection){
             svg.append('path')
             .datum(graticule)
             .attr('class', 'graticule')
-            .attr('d', geoGenerator);
+            .attr('d', path);
         }
 
         var u = svg
@@ -944,7 +969,7 @@ function d3test(featureCollection){
 
         u.enter()
         .append('path')
-        .attr('d', geoGenerator)
+        .attr('d', path)
         .on('mouseover', handleMouseover);
 
         u.exit().remove();
