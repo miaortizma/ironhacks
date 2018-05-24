@@ -77,18 +77,63 @@
 
     <div class="container" id="home">
         <div class="row dark-primary-color text-primary-color justify-content-center">
-            <h1>NYU EASY RESIDENCE</h1>
+
         </div>
         <div class="row justify-content-center">
             <div class="col-md-12 text-center">
-                <p id="HELLO">HELLO.<p>
+                <h1>NYU EASY RESIDENCE</h1>
+                <p id="HELLO"></p>
+                <p>Find residence options near NYU<p>
                 <hr class="divider-color">
-                <p>Here you can find residence options near NYU</p>
-                <div class="Words">
+
+
+                <div id="carouselExampleControls" class="carousel slide dark-primary-color text-primary-color" data-ride="carousel">
+                    <p>Here you can:</p>
+                    <div class="carousel-inner" role="listbox">
+                        <div class="carousel-item active">
+                            <p>See information by disctrict</p>
+                        </div>
+                        <div class="carousel-item">
+                            <p>Search district by features</p>
+                        </div>
+                        <div class="carousel-item">
+                            <p>Get advise on top districts</p>
+                        </div>
+                        <div class="carousel-item">
+                            <p>Download and filter the data that was used</p>
+                        </div>
+
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="container" id="stats">
+        <div class="row justify-content-center dark-primary-color text-primary-color">
+            <h1>INFORMATION</h1>
+        </div>
+        <div class="info" id="geoinfo">Hover over a district</div>
+        <div class="row justify-content-center">
+            <div class="col-12" id="d3">
+                <svg>
+
+                </svg>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
 
     <div class="container" id="maps">
         <div class="row justify-content-center dark-primary-color text-primary-color">
@@ -186,7 +231,7 @@
     <div class="container" id="find">
 
         <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>FIND ME A DISTRICT TO LIVE WIP</h1>
+            <h1>FIND ME A DISTRICT TO LIVE [WIP]</h1>
         </div>
         <div class="row justify-content-center">
             <p>I CARE ABOUT:</p>
@@ -207,23 +252,6 @@
             <div class="col-md-12">
                 <button class="btn btn-block" id="top"> TOP habitable districts</button>
             </div>
-        </div>
-    </div>
-
-    <div class="container" id="stats">
-        <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>INFORMATION</h1>
-        </div>
-        <div class="info" id="geoinfo">Hover over a district</div>
-        <div class="row justify-content-center">
-            <div class="col-12" id="d3">
-                <svg>
-
-                </svg>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <canvas id="canvas"></canvas>
         </div>
     </div>
 
@@ -258,7 +286,7 @@
                 <label>entries</label>
             </form>
             <div class="col-md-4 ">
-                <button class="btn btn-block" id="modifyColumns"> Change columns WIP</button>
+                <button class="btn btn-block" id="modifyColumns"> Change columns [WIP]</button>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-block" id="export"> Export table to CSV </button>
@@ -306,7 +334,7 @@
             <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank"> CC 3.0 BY </a>
         </div>
         <div class="row dark-primary-color text-primary-color">
-            MIGUEL ANGEL ORTIZ MARIN
+            MIGUEL ANGEL ORTIZ MARIN, estoy en parciales :'v
         </div>
     </div>
 </body>
