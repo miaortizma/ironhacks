@@ -92,7 +92,7 @@
 
     <div class="container" id="maps">
         <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>MAP</h1>
+            <h1>SEARCH DISTRICTS</h1>
         </div>
         <div class="row">
             <form class="col-md-4  primary-text-color" id="mapOptions">
@@ -183,6 +183,50 @@
         </div>
     </div>
 
+    <div class="container" id="find">
+
+        <div class="row justify-content-center dark-primary-color text-primary-color">
+            <h1>FIND ME A DISTRICT TO LIVE WIP</h1>
+        </div>
+        <div class="row justify-content-center">
+            <p>I CARE ABOUT:</p>
+        </div>
+        <div class="row justify-content-center" id="tableSelector">
+            <div class="col-md-4">
+                <button class="btn btn-block" id="safety"> SAFETY </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-block" id="affordability"> AFFORDABILITY </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-block" id="distance"> DISTANCE TO NYU </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-block" id="air_quality"> DISTANCE TO NYU </button>
+            </div>
+            <div class="col-md-12">
+                <button class="btn btn-block" id="top"> TOP habitable districts</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="stats">
+        <div class="row justify-content-center dark-primary-color text-primary-color">
+            <h1>INFORMATION</h1>
+        </div>
+        <div class="info" id="geoinfo">Hover over a district</div>
+        <div class="row justify-content-center">
+            <div class="col-12" id="d3">
+                <svg>
+
+                </svg>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
     <div class="container" id="raw">
         <div class="row justify-content-center dark-primary-color text-primary-color">
             <h1>RAW DATA</h1>
@@ -249,50 +293,6 @@
             </div>
         </div>
         <p>Here you find the list of all the Neighborhoods in NY, along with their name centroid coordinates (geografical center) and the borough that they are part of.</p>
-    </div>
-
-    <div class="container" id="find">
-        <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>FIND ME A DISTRICT TO LIVE WIP</h1>
-        </div>
-        <div class="row justify-content-center">
-            <p>I CARE ABOUT:</p>
-        </div>
-        <div class="row justify-content-center" id="tableSelector">
-            <div class="col-md-4">
-                <button class="btn btn-block" id="safety"> SAFETY </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-block" id="affordability"> AFFORDABILITY </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-block" id="distance"> DISTANCE TO NYU </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-block" id="air_quality"> DISTANCE TO NYU </button>
-            </div>
-            <div class="col-md-12">
-                <button class="btn btn-block" id="top"> TOP habitable districts</button>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="container" id="stats">
-        <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>STATS WIP</h1>
-        </div>
-        <div class="info" id="geoinfo">Hover over a district</div>
-        <div class="row justify-content-center">
-            <div class="col-12" id="d3">
-                <svg>
-
-                </svg>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <canvas id="canvas"></canvas>
-        </div>
     </div>
 
     <div class="container" id="credits">

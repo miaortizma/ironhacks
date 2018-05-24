@@ -38,88 +38,30 @@ var isChrome = !!window.chrome && !!window.chrome.webstore;
 
 //https://stackoverflow.com/questions/10024469/whats-the-best-way-to-retry-an-ajax-request-on-failure-using-jquery
 
-function method1(){
+function retryAjax(url_, name){
     return $.ajax({
-        url : NY_district_shapes_URL,
+        url : url_,
         type : 'GET',
         tryCount: 0,
         retryLimit: 3,
         success : function(json){
-            console.log('Success shapes');
+            console.log('Success ' + name);
         },
         error : function(xhr, textStatus, errorThrown){
             if(this.tryCount <= this.retryLimit){
                 this.tryCount++;
-                console.log('retry shapes');
+                console.log('retry' + name);
                 $.ajax(this);
-            }
-        }
-    });
-
-}
-
-function method2(){
-    return $.ajax({
-        url : NY_district_names_URL,
-        type : 'GET',
-        tryCount: 0,
-        retryLimit: 3,
-        success : function(json){
-            console.log('Success names');
-        },
-        error : function(xhr, textStatus, errorThrown){
-            if(this.tryCount <= this.retryLimit){
-                this.tryCount++;
-                console.log('retry names');
-                $.ajax(this);
-                return;
-            }
-        }
-    });
-}
-
-function method3(){
-    return $.ajax({
-        url : NY_building_URL,
-        type : 'GET',
-        tryCount: 0,
-        retryLimit: 3,
-        success : function(json){
-            console.log('Success buildings');
-        },
-        error : function(xhr, textStatus, errorThrown){
-            if(this.tryCount <= this.retryLimit){
-                this.tryCount++;
-                console.log('retry buildings');
-                $.ajax(this);
-                return;
-            }
-        }
-    });
-}
-
-function method4(){
-    return $.ajax({
-        url : NY_crimes_URL,
-        type : 'GET',
-        tryCount: 0,
-        retryLimit: 3,
-        success : function(json){
-            console.log('Success crimes');
-        },
-        error : function(xhr, textStatus, errorThrown){
-            if(this.tryCount <= this.retryLimit){
-                this.tryCount++;
-                console.log('retry success');
-                $.ajax(this);
-                return;
             }
         }
     });
 }
 
 function getData(){
-     $.when(method1(), method2(), method3(), method4() )
+     $.when(retryAjax(NY_district_shapes_URL, 'features'),
+            retryAjax(NY_district_names_URL, 'names'),
+            retryAjax(NY_building_URL, 'buildings'),
+            retryAjax(NY_crimes_URL, 'crimes'))
     .done(function(data1, data2, data3, data4){
          data1 = $.parseJSON(data1[2].responseText);
          data2 = data2[2].responseJSON.data;
@@ -266,7 +208,7 @@ function constructCrimes(data){
         point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
         district = findDistrict(point);
         if(district == -1){
-            addMarker(point,'CRIMENLOL');
+            //addMarker(point,'CRIMENLOL');
             continue;
         }
         crimes.push(point);
@@ -487,233 +429,25 @@ function findDistrict(point, borough){
 }
 
 window.initMap = function() {
-    map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 10,
-      center: {lat: 40.7291, lng: -73.9965},
-      styles: [
-          {
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#212121'
-                  }
-              ]
-          },
-          {
-              'elementType': 'labels.icon',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#757575'
-                  }
-              ]
-          },
-          {
-              'elementType': 'labels.text.stroke',
-              'stylers': [
-                  {
-                      'color': '#212121'
-                  }
-              ]
-          },
-          {
-              'featureType': 'administrative',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#757575'
-                  }
-              ]
-          },
-          {
-              'featureType': 'administrative.country',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#9e9e9e'
-                  }
-              ]
-          },
-          {
-              'featureType': 'administrative.land_parcel',
-              'elementType': 'labels',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'featureType': 'administrative.locality',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#bdbdbd'
-                  }
-              ]
-          },
-          {
-              'featureType': 'poi',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#757575'
-                  }
-              ]
-          },
-          {
-              'featureType': 'poi.park',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#181818'
-                  }
-              ]
-          },
-          {
-              'featureType': 'poi.park',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#616161'
-                  }
-              ]
-          },
-          {
-              'featureType': 'poi.park',
-              'elementType': 'labels.text.stroke',
-              'stylers': [
-                  {
-                      'color': '#1b1b1b'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road',
-              'elementType': 'geometry.fill',
-              'stylers': [
-                  {
-                      'color': '#2c2c2c'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#8a8a8a'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.arterial',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#373737'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.arterial',
-              'elementType': 'labels',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.highway',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#3c3c3c'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.highway',
-              'elementType': 'labels',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.highway.controlled_access',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#4e4e4e'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.local',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.local',
-              'elementType': 'labels',
-              'stylers': [
-                  {
-                      'visibility': 'off'
-                  }
-              ]
-          },
-          {
-              'featureType': 'road.local',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#616161'
-                  }
-              ]
-          },
-          {
-              'featureType': 'transit',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#757575'
-                  }
-              ]
-          },
-          {
-              'featureType': 'water',
-              'elementType': 'geometry',
-              'stylers': [
-                  {
-                      'color': '#000000'
-                  }
-              ]
-          },
-          {
-              'featureType': 'water',
-              'elementType': 'labels.text.fill',
-              'stylers': [
-                  {
-                      'color': '#3d3d3d'
-                  }
-              ]
-          }
-      ]
+    var style = $.ajax({
+        url :'mapstyle.json',
+        beforeSend: function(xhr){
+            if (xhr.overrideMimeType)
+            {
+                xhr.overrideMimeType("application/json");
+            }
+        },
+        success: function(style){
+            console.log(style);
+            map = new google.maps.Map(document.getElementById('map'), {
+                  zoom: 10,
+                  center: {lat: 40.7291, lng: -73.9965},
+                  styles: style.style
+                });
+                addMarker(nyu, 'NYU');
+        },
+        dataType: 'json'
     });
-    addMarker(nyu, 'NYU');
     //map.data.loadGeoJson(NY_district_shapes_URL);
 }
 
@@ -872,10 +606,12 @@ https://bl.ocks.org/d3indepth/3ccd770923a61f26f55156657e2f51e8
 */
 
 function handleMouseover(d,i){
-    var centroid = districts[i].centroid;
-
+    var district = districts[i];
+    var centroid = district.centroid;
+    console.log(district);
+    var str = 'Borough Code: ' + district.borough;
     d3.select('#geoinfo')
-    .text('BoroCD '+ d.properties.BoroCD + ' centroid: ' + centroid.lat + ' ' + centroid.lng)
+    .text('Boroug Code '+ d.properties.BoroCD + ' centroid: ' + centroid.lat + ' ' + centroid.lng)
 }
 
 var features;
