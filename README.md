@@ -1,4 +1,4 @@
-## webapp_phase1
+## webapp_phase4
 
 ### NYU easy Residence
 
@@ -25,10 +25,15 @@ My project can be used to see information from NY neighbourhoods and also commun
 
 #### Interaction Form:
 
-1. [Y] The user can press a button to get the list of neighbourhoods in NY.
-2. [N] The user cannot operate on the form apart from getting the data.
+1. [Y] 
+-Tables with raw data
+-Information of specified districts
+2. [Y] The user can select from several tables and export them as CSV.
 3. [Y] The user can input district or borough id into a text field.
-4. [Y] Based on the district or borough id the user can press a button that draws borders based on the filters that they provide.
-5. [N] No current interaction with data visualization
+4. [Y]
+-The user can filter the borders, crimes and markers that are drawn in the google map with several filters, the markesr have titles.
+5. [Y] 
+-When users hovers over a district information of the district is shown
 
-Tested on Chrome and Firefox
+Tested on Firefox (working)
+Tested on Chrome (not working, GET request receives different JSON).
