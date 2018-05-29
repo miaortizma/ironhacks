@@ -1,3 +1,18 @@
+function codeAddress(address, i){
+    var LatLng;
+    geocoder.geocode({'address': address}, function(results,status){
+        console.log('i: ' + i)
+        if(status == 'OK'){
+            LatLng = results[0].geometry.location;
+            console.log(LatLng.lat());
+        }else{
+            console.log('error');
+            console.log(status);
+        }
+    });
+    return LatLng;
+}
+
 
 function toLatLng(lat, lng){
     return {lat: lat, lng: lng};
@@ -13,10 +28,10 @@ function isContained(point, poly){
     //return google.maps.geometry.poly.containsLocation(point, poly);
     //keep for fun, google maps api is probabily faster
 
-    var c = false;
-    var x = point.lat;
-    var y = point.lng;
-    var j = poly.length - 1;
+    var c = false,
+    x = point.lat,
+    y = point.lng,
+    j = poly.length - 1;
     for (var i = 0; i < poly.length; i++) {
         if (  (poly[i].lng > y) != (poly[j].lng > y) &&  x < poly[i].lat + (poly[j].lat - poly[i].lat) * (y - poly[i].lng) / (poly[j].lng - poly[i].lng) ) {
             c = !c;
@@ -144,9 +159,11 @@ function addBorough(a){
 }
 
 function clearBorders(){
-    for (var i = 0; i < 71; i++) {
-        removeDistrict(i);
-    }
+    var boroughCBS = $('#boroughCheckboxes input').each(function(i,a){
+        if(this.checked){
+            $(this).click();
+        }
+    });
 }
 
 function clearMarkers(){

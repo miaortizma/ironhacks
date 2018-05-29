@@ -2,7 +2,10 @@ var NY_district_shapes_URL = 'https://data.cityofnewyork.us/resource/jp9i-3b7y.j
 var NY_district_names_URL = 'https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD';
 var NY_crimes_URL = 'https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD';
 var NY_building_URL = 'https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD';
-var NY_air_quality_URL = 'https://data.cityofnewyork.us/resource/ah89-62h9.json'
+//air_quality doesn't have data of all habitable districts so it's a no-no.
+var NY_air_quality_URL = 'https://data.cityofnewyork.us/resource/ah89-62h9.json';
+var NY_markets_URL = 'https://data.ny.gov/resource/7jkw-gj56.json';
+var NY_subawy_URL = 'https://data.ny.gov/resource/hvwh-qtfg.json';
 var URL;
 /*
 Borough no:
@@ -24,7 +27,9 @@ var districts = new Array(71);
 var infoRows = [];
 var buildings = [];
 var crimes = [];
+var markets = [];
 var map;
+var geocoder;
 var heatmap;
 var markers = [];
 var nyu = {lat: 40.7291, lng: -73.9965};
@@ -37,6 +42,7 @@ var topColumns = ['crimes','score','distance'];
 var useColumn = [true, true, true];
 
 function updateColumns(column){
+    topDistrictsTable();
     useColumn[column] = !useColumn[column];
     var columnin = $('table th:contains(\''+topColumns[column]+'\')').index() + 1;
     $('table tr > *:nth-child('+ columnin +')').toggle();
@@ -73,18 +79,23 @@ function getData(){
     $.when(retryAjax(NY_district_shapes_URL, 'features'),
     retryAjax(NY_district_names_URL, 'names'),
     retryAjax(NY_building_URL, 'buildings'),
-    retryAjax(NY_crimes_URL, 'crimes'))
-    .done(function(data1, data2, data3, data4){
+    retryAjax(NY_crimes_URL, 'crimes'),
+    retryAjax(NY_markets_URL, 'markets'))
+    .done(function(data1, data2, data3, data4, data5){
         data1 = data1[0];
         data2 = data2[2].responseJSON.data;
         data3 = data3[2].responseJSON.data;
         data4 = data4[2].responseJSON.data;
+        console.log(data5);
+        data5 = data5[0];
         constructFeatures(data1);
         constructNames(data2);
         constructBuildings(data3);
         constructCrimes(data4);
+        constructMarkets(data5);
+        topDistricts();
         topDistrictsTable();
-        radarTest();
+        radarTest(1);
     }).fail(function(){
         $.when(this);
         alert('Couldn\'t connet to databases, try reloading the page');
@@ -136,11 +147,13 @@ function constructFeatures(data){
             fillOpacity: 0.35,
             indexID: i
         });
-
         google.maps.event.addListener(polygon, 'mouseover', function () {
             //alert the index of the polygon
-            console.log(districts[this.indexID].borocd);
+            district = districts[this.indexID];
+            console.log(district.borocd);
+            console.log(district.zscores);
         });
+
         districts[i] = {id: i,
             path: multipoly,
             center: center,
@@ -148,7 +161,7 @@ function constructFeatures(data){
             distance: distanceBetween(nyu, centroid),
             borough: boroughId,
             borocd: boroCD,
-            type: "MultiPolygon",
+            type: 'MultiPolygon',
             polygon: polygon,
             habitable: habitable,
             score: 0,
@@ -207,21 +220,27 @@ function constructBuildings(data){
 
 function constructCrimes(data){
     var boroughaltID = {'MANHATTAN': 0,'BRONX': 1,'BROOKLYN': 2,'QUEENS': 3,'STATEN ISLAND':4};
-    for (var i = 0; i < data.length; i++) {
-        point = {lat: parseFloat(data[i][29]), lng: parseFloat(data[i][30])};
+    $.each(data, function(i,a){
+        point = {lat: parseFloat(a[29]), lng: parseFloat(a[30])};
         district = findDistrict(point);
-        if(district == -1){
-            //addMarker(point,'CRIMENLOL');
-            continue;
+        if(district != -1){
+            crimes.push(point);
+            districts[district].crimes++;
+            boroughs[boroughaltID[a[21]]].crimes.push(point);
         }
-        crimes.push(point);
-        districts[district].crimes++;
-        boroughs[boroughaltID[data[i][21]]].crimes.push(point);
-    }
+    });
+    
     for (var i = 0; i < 5; i++) {
         boroughs[i].crimes = boroughs[i].crimes.map(x => new google.maps.LatLng(x));
         boroughs[i].heatmap = new google.maps.visualization.HeatmapLayer({data: boroughs[i].crimes});
     }
+}
+
+function constructMarkets(data){
+    $.each(data, function(i,a){
+        row = {lat: a.latitude, lng: a.lng};
+        console.log(a);
+    });
 }
 
 function showCrimes(){
@@ -255,32 +274,36 @@ function districtsTable(){
 
 var topCalculated = false;
 
+function zScores(array) {
+    var mean = d3.mean(array);
+    var standardDeviation = d3.deviation(array);
+    return array.map(function(num) {
+        return (num - mean) / standardDeviation;
+    });
+}
+
+function topDistricts(){
+    var affordability = zScores(districts.map(a => a.score));
+    var distances = zScores(districts.map(a => a.distance));
+    var crimes = zScores(districts.map(a => a.crimes));
+    $.each(districts, function(i, a){
+        a.zscores = [crimes[i], affordability[i], distances[i]];
+    });
+}
+
 function topDistrictsTable(){
     var columns = ['id', 'borough', 'borocd','score','distance','crimes','zscore'];
-    if(!topCalculated){
-        var affordability = arr.zScores(districts.map(a => a.score));
-        var distances = arr.zScores(districts.map(a => a.distance));
-        var crimes = arr.zScores(districts.map(a => a.crimes));
-        $.each(districts, function(i, a){
-            a.zscores = [crimes[i], affordability[i], distances[i]];
-        });
-    }
-
+    var signs = [-1, 1, -1];
     $.each(districts, function(i, a){
         a.zscore = 0.0;
-        if(useColumn[0]){
-            a.zscore -= a.zscores[0];
-        }
-        if(useColumn[1]){
-            a.zscore += a.zscores[1];
-        }
-        if(useColumn[2]){
-            a.zscore -= a.zscores[2];
+        for (var i = 0; i < useColumn.length; i++) {
+            if(useColumn[i]){
+                a.zscore += a.zscores[i]*signs[i];
+            }
         }
     });
     getTable(districts.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
-        console.log(districts[row.id]);
     }, 'top_districts');
     $('#top').addClass('selected');
     topCalculated = true;
@@ -335,7 +358,7 @@ function getTable(data, columns, rowClick, tablename){
    .enter()
    .append('caption')
    .text(tablename)
-   .style("display", "none");
+   .style('display', 'none');
 
     var thead = table.select('thead').select('tr');
     thead = thead.selectAll('th')
@@ -387,12 +410,13 @@ function getTable(data, columns, rowClick, tablename){
 }
 
 window.initMap = function() {
+    geocoder = new google.maps.Geocoder()
     var style = $.ajax({
         url :'mapstyle.json',
         beforeSend: function(xhr){
             if (xhr.overrideMimeType)
             {
-                xhr.overrideMimeType("application/json");
+                xhr.overrideMimeType('application/json');
             }
         },
         success: function(style){
@@ -447,7 +471,7 @@ function addNeighbour(a){
 function toCSV(){
     //https://forums.asp.net/t/1985239.aspx?How+to+remove+style+display+none+columns+when+exporting+an+HTML+table+to+Excel+
     var table = $('#neighborhoodTable').clone();
-    table.find('[style*="display: none"]').remove();
+    table.find('[style*=\'display: none\']').remove();
     table.tableToCSV();
 }
 
@@ -480,7 +504,7 @@ function handleMouseover(d,i){
     .text(function(d){ return d;});
 }
 
-var features;
+var featuresCollection;
 var projection;
 var path;
 var mapRatio = 0.5;
@@ -493,11 +517,11 @@ function miles(km){
 
 //http://eyeseast.github.io/visible-data/2013/08/26/responsive-d3/
 function resize(){
-    var width = parseInt(d3.select("#geoinfo").style("width"));
+    var width = parseInt(d3.select('#geoinfo').style('width'));
     var padding = 10;
     width = width - 2*padding;
     height = width * mapRatio;
-    projection.fitExtent([[padding,padding],[width,height]], features);
+    projection.fitExtent([[padding,0],[width,height]], featureCollection);
 
     var svg = d3.select('#d3 svg')
     .attr('width', width + padding*2)
@@ -510,16 +534,15 @@ function resize(){
 function d3test(features){
     features = features.map(x => {
         var obj = {};
-        obj.type = "Feature";
+        obj.type = 'Feature';
         obj.geometry = x.the_geom;
         return obj;
     });
     featureCollection = { type: 'FeatureCollection', features: features};
-    features = featureCollection;
-    var width = parseInt(d3.select("#geoinfo").style("width"));
+    var width = parseInt(d3.select('#geoinfo').style('width'));
     var padding = 10;
     height = width * mapRatio;
-    var context = true, graticule = false;
+    var context = false, graticule = false;
 
     //
     //
@@ -533,9 +556,9 @@ function d3test(features){
     //http://bl.ocks.org/nbremer/a43dbd5690ccd5ac4c6cc392415140e7
     /*var colorScale = d3.scale.linear()
     .domain([-15, 7.5, 30])
-    .range(["#2c7bb6", "#ffff8c", "#d7191c"])
+    .range(['#2c7bb6', '#ffff8c', '#d7191c'])
     .interpolate(d3.interpolateHcl);*/
-    $(".loader").hide();
+    $('.loader').hide();
 
     if(context){
         var context = d3.select('canvas')
@@ -565,7 +588,7 @@ function d3test(features){
             context.stroke();
         }
     }else{
-        $("#canvas").hide();
+        $('#canvas').hide();
         var svg = d3.select('#d3 svg')
         .attr('width', width)
         .attr('height', height)
@@ -593,58 +616,42 @@ function d3test(features){
     }
 }
 
-function radarTest(){
-    var margin = { top: 50, right: 80, bottom: 50, left: 80 },
-    				width = Math.min(700, window.innerWidth / 4) - margin.left - margin.right,
-    				height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
-    /*var data = [
-        {name:'Test0', axes:[ {axis:'score', value: 73}, {axis:'crimes', score:13} ] },
-        {name:'Test1', axes:[ {axis:'score', value: 63}, {axis:'crimes', score:63} ] },
-        {name:'Test2', axes:[ {axis:'score', value: 33}, {axis:'crimes', score:35} ] }];*/
+function radarTest(district){
+    var width = parseInt(d3.select('.radarChart').style('width'));
+    var mrg = 50;
+    var margin = { top: mrg, right: mrg, bottom: mrg, left: mrg},
+    width = width - mrg*2,
+    height = width,
+    district = districts[district];
+
+    var zscores = districts.map(a => a.zscores);
+    var cols = zscores[0].length;
+    var myScale = d3.scaleLinear(d3.min(districts.map(a => a.zscores[0])));
+
     var data = [
-    { name: 'Allocated budget',
+    { name: district.borocd,
         axes: [
-            {axis: 'Sales', value: 42},
-            {axis: 'Marketing', value: 20},
-            {axis: 'Development', value: 60},
-            {axis: 'Customer Support', value: 26},
-            {axis: 'Information Technology', value: 35},
-            {axis: 'Administration', value: 20}
-        ]
-    },
-    { name: 'Actual Spending',
-        axes: [
-            {axis: 'Sales', value: 50},
-            {axis: 'Marketing', value: 45},
-            {axis: 'Development', value: 20},
-            {axis: 'Customer Support', value: 20},
-            {axis: 'Information Technology', value: 25},
-            {axis: 'Administration', value: 23}
+            {axis: 'Score', value: 0.15},
+            {axis: 'Crimes', value: 0.20},
+            {axis: 'Distance', value: 0.60},
+            {axis: 'Air', value: 0.50},
+            {axis: 'Subway', value: 0.30}
         ]
     }];
-    var data = [
-        {name:'Test0', axes: [
-                {axis: 'Sales', value: 50},
-                {axis: 'Marketing', value: 45}
-            ] },
-        {name:'Test1', axes: [
-                {axis: 'Sales', value: 42},
-                {axis: 'Marketing', value: 20}
-        ] }];
     var radarChartOptions = {
-			  w: 290,
-			  h: 350,
+			  w: 225,
+			  h: 225,
 			  margin: margin,
 			  levels: 5,
-			  roundStrokes: true,
-				color: d3.scaleOrdinal().range(['#26AF32', '#762712']),
-				format: '.0f'
+              maxValue: 1,
+			  roundStrokes: false,
+				color: d3.scaleOrdinal().range(['#26AF32', '#762712'])
 			};
     let svg_radar1 = RadarChart('.radarChart', data, radarChartOptions);
 }
 
 $('document').ready(function(){
-    //alert("If you are using chrome some things may be broken, better use Firefox!");
+    //alert('If you are using chrome some things may be broken, better use Firefox!');
     getData();
     //getBuildings();
     $('#getNYDistrictShape').click(addDistrictInput);
@@ -657,13 +664,25 @@ $('document').ready(function(){
     $('#top').click(topDistrictsTable);
     $('#export').click(toCSV);
     $('#paginateSelect').change(paginate);
-    var filterButtons = $('#filters div > button').addClass("selected");
+    var drawOPTS = $('#drawOptions input').each(function(i,a){
+        $(this).click(addBoroughsCheckBoxes);
+    });
+    var boroughCBS = $('#boroughCheckboxes input').each(function(i,a){
+        $(this).click(function(){
+            if(this.checked){
+                addBorough(i);
+            }else{
+                removeBorough(i);
+            }
+        });
+    });
+    var filterButtons = $('#filters div > button').addClass('selected');
     filterButtons.click(function(){
         var ind = $(this).parent().index();
         if(useColumn[ind]){
-            $(this).removeClass("selected");
+            $(this).removeClass('selected');
         }else{
-            $(this).addClass("selected");
+            $(this).addClass('selected');
         }
         updateColumns(ind);
     });

@@ -270,6 +270,7 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 				.attr('y', this.cy.baseVal.value - 10)
 				.transition()
 				.style('display', 'block')
+				.style("opacity", 1)
 				.text(Format(d.value) + cfg.unit);
 		})
 		.on("mouseout", function(){
