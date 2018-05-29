@@ -33,11 +33,16 @@ var drawOnlyHabitable = false;
 var drawCrimes = false;
 var sortAscending = true;
 
-var topColumns = ["crimes","score","distance"];
+var topColumns = ['crimes','score','distance'];
 var useColumn = [true, true, true];
 
 function updateColumns(column){
-
+    useColumn[column] = !useColumn[column];
+    var columnin = $('table th:contains(\''+topColumns[column]+'\')').index() + 1;
+    $('table tr > *:nth-child('+ columnin +')').toggle();
+    topDistrictsTable();
+    /*var zscorecol = $('table th:contains(\'zscore\')').index() + 1;
+    var col = d3.select(tbody);*/
 }
 
 var isChrome = !!window.chrome && !!window.chrome.webstore;
@@ -79,6 +84,7 @@ function getData(){
         constructBuildings(data3);
         constructCrimes(data4);
         topDistrictsTable();
+        radarTest();
     }).fail(function(){
         $.when(this);
         alert('Couldn\'t connet to databases, try reloading the page');
@@ -89,6 +95,7 @@ function getData(){
     }, 'text').fail(function(){
         console.log('wtf');
     });
+
 }
 
 function constructFeatures(data){
@@ -126,7 +133,13 @@ function constructFeatures(data){
             strokeOpacity: 0.8,
             strokeWeight: 2,
             fillColor: color,
-            fillOpacity: 0.35
+            fillOpacity: 0.35,
+            indexID: i
+        });
+
+        google.maps.event.addListener(polygon, 'mouseover', function () {
+            //alert the index of the polygon
+            console.log(districts[this.indexID].borocd);
         });
         districts[i] = {id: i,
             path: multipoly,
@@ -201,8 +214,6 @@ function constructCrimes(data){
             //addMarker(point,'CRIMENLOL');
             continue;
         }
-        console.log("crime");
-        console.log(data[i]);
         crimes.push(point);
         districts[district].crimes++;
         boroughs[boroughaltID[data[i][21]]].crimes.push(point);
@@ -223,13 +234,13 @@ function showCrimes(){
 
 function neighborhoodsTable(){
     var columns = ['id','lat','lng','name','borough','district'];
-    getTable(infoRows, columns);
+    getTable(infoRows, columns, function(){}, 'neighborhoods');
     $('#getData').addClass('selected');
 }
 
 function buildingsTable(){
     var columns  = ['borough', 'district', 'lat', 'lng'];
-    getTable(buildings, columns);
+    getTable(buildings, columns, function(){}, 'buildings');
     $('#getBuildingsData').addClass('selected');
 }
 
@@ -237,7 +248,7 @@ function districtsTable(){
     var columns = ['id', 'borough', 'borocd', 'score','distance','crimes'];
     getTable(districts, columns, function(row){
         addDistrict(row.id);
-    });
+    }, 'districts');
     $('#getDistrictsData').addClass('selected');
     $('#districtsTableMessage').show();
 }
@@ -245,24 +256,32 @@ function districtsTable(){
 var topCalculated = false;
 
 function topDistrictsTable(){
-    console.log("hey1");
     var columns = ['id', 'borough', 'borocd','score','distance','crimes','zscore'];
     if(!topCalculated){
         var affordability = arr.zScores(districts.map(a => a.score));
         var distances = arr.zScores(districts.map(a => a.distance));
         var crimes = arr.zScores(districts.map(a => a.crimes));
-        var zscore = affordability.map(function(a,i){
-            return a - distances[i] - crimes[i];
-        });
-        districts = districts.map(function(a,i){
-            a.zscore = zscore[i];
-            return a;
+        $.each(districts, function(i, a){
+            a.zscores = [crimes[i], affordability[i], distances[i]];
         });
     }
+
+    $.each(districts, function(i, a){
+        a.zscore = 0.0;
+        if(useColumn[0]){
+            a.zscore -= a.zscores[0];
+        }
+        if(useColumn[1]){
+            a.zscore += a.zscores[1];
+        }
+        if(useColumn[2]){
+            a.zscore -= a.zscores[2];
+        }
+    });
     getTable(districts.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
-    });
-    console.log("hey");
+        console.log(districts[row.id]);
+    }, 'top_districts');
     $('#top').addClass('selected');
     topCalculated = true;
 }
@@ -298,7 +317,7 @@ function paginate(){
     });
 }
 
-function getTable(data, columns, rowClick){
+function getTable(data, columns, rowClick, tablename){
     if(rowClick == undefined){
         rowClick = function(){};
     }
@@ -308,8 +327,17 @@ function getTable(data, columns, rowClick){
     //http://bl.ocks.org/AMDS/4a61497182b8fcb05906
     //https://stackoverflow.com/questions/32871044/how-to-update-d3-table
     var table = d3.select('table');
+    var caption = table.selectAll('caption')
+    .data([tablename])
+    .text(tablename);
+
+    caption
+   .enter()
+   .append('caption')
+   .text(tablename)
+   .style("display", "none");
+
     var thead = table.select('thead').select('tr');
-    var tbody = table.select('tbody');
     thead = thead.selectAll('th')
     .data(columns)
     .text( function(column) { return column;})
@@ -322,6 +350,7 @@ function getTable(data, columns, rowClick){
 
     thead.exit().remove();
 
+    var tbody = table.select('tbody');
     var rows = tbody.selectAll('tr')
     .data(data)
     .on('click', rowClick);
@@ -487,11 +516,10 @@ function d3test(features){
     });
     featureCollection = { type: 'FeatureCollection', features: features};
     features = featureCollection;
-    console.log(featureCollection.features[0]);
     var width = parseInt(d3.select("#geoinfo").style("width"));
     var padding = 10;
     height = width * mapRatio;
-    var context = false, graticule = false;
+    var context = true, graticule = false;
 
     //
     //
@@ -563,20 +591,60 @@ function d3test(features){
 
         u.exit().remove();
     }
-
-        u.enter()
-        .append('path')
-        .attr('d', path)
-        .on('mouseover', handleMouseover);
-
-        u.exit().remove();
-    }
-
 }
 
+function radarTest(){
+    var margin = { top: 50, right: 80, bottom: 50, left: 80 },
+    				width = Math.min(700, window.innerWidth / 4) - margin.left - margin.right,
+    				height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
+    /*var data = [
+        {name:'Test0', axes:[ {axis:'score', value: 73}, {axis:'crimes', score:13} ] },
+        {name:'Test1', axes:[ {axis:'score', value: 63}, {axis:'crimes', score:63} ] },
+        {name:'Test2', axes:[ {axis:'score', value: 33}, {axis:'crimes', score:35} ] }];*/
+    var data = [
+    { name: 'Allocated budget',
+        axes: [
+            {axis: 'Sales', value: 42},
+            {axis: 'Marketing', value: 20},
+            {axis: 'Development', value: 60},
+            {axis: 'Customer Support', value: 26},
+            {axis: 'Information Technology', value: 35},
+            {axis: 'Administration', value: 20}
+        ]
+    },
+    { name: 'Actual Spending',
+        axes: [
+            {axis: 'Sales', value: 50},
+            {axis: 'Marketing', value: 45},
+            {axis: 'Development', value: 20},
+            {axis: 'Customer Support', value: 20},
+            {axis: 'Information Technology', value: 25},
+            {axis: 'Administration', value: 23}
+        ]
+    }];
+    var data = [
+        {name:'Test0', axes: [
+                {axis: 'Sales', value: 50},
+                {axis: 'Marketing', value: 45}
+            ] },
+        {name:'Test1', axes: [
+                {axis: 'Sales', value: 42},
+                {axis: 'Marketing', value: 20}
+        ] }];
+    var radarChartOptions = {
+			  w: 290,
+			  h: 350,
+			  margin: margin,
+			  levels: 5,
+			  roundStrokes: true,
+				color: d3.scaleOrdinal().range(['#26AF32', '#762712']),
+				format: '.0f'
+			};
+    let svg_radar1 = RadarChart('.radarChart', data, radarChartOptions);
+}
 
 $('document').ready(function(){
-    alert("If you are using chrome some things may be broken, better use Firefox!");
+    //alert("If you are using chrome some things may be broken, better use Firefox!");
     getData();
     //getBuildings();
     $('#getNYDistrictShape').click(addDistrictInput);
@@ -589,6 +657,15 @@ $('document').ready(function(){
     $('#top').click(topDistrictsTable);
     $('#export').click(toCSV);
     $('#paginateSelect').change(paginate);
-
+    var filterButtons = $('#filters div > button').addClass("selected");
+    filterButtons.click(function(){
+        var ind = $(this).parent().index();
+        if(useColumn[ind]){
+            $(this).removeClass("selected");
+        }else{
+            $(this).addClass("selected");
+        }
+        updateColumns(ind);
+    });
     URL = window.location.href;
 })

@@ -38,6 +38,7 @@
 
     <script src="arr.js"></script>
     <script src="map.js"></script>
+    <script src="radarChart.js"></script>
     <script src="index.js"></script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMxp2G5hvKXNz3SgucMeB_NRulrjJH45o&libraries=geometry,visualization&callback=initMap">
@@ -61,9 +62,6 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#maps">SEARCH</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#find">FIND</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#raw">DATA</a>
@@ -117,28 +115,6 @@
             </div>
         </div>
     </div>
-
-    <div class="container" id="stats">
-        <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>INFORMATION</h1>
-        </div>
-        <div class="info" id="geoinfo">
-            <p>Hover over a district</p>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-12" id="d3">
-                <svg>
-
-                </svg>
-            </div>
-            <div class="col-auto loader"></div>
-
-        </div>
-        <div class="row justify-content-center">
-            <canvas id="canvas"></canvas>
-        </div>
-    </div>
-
 
     <div class="container" id="maps">
         <div class="row justify-content-center dark-primary-color text-primary-color">
@@ -196,8 +172,11 @@
                     <div class="col-md-12">
                         <button class="btn btn-block" id="addBoroughsCheckBoxes" type="button">Graph the borders!</button>
                     </div>
+                    <div class="col-md-12">
+                        <button class="btn btn-block" id="clearBorders" type="button">Clear</button>
+                    </div>
                 </div>
-                <div class="form-group row">
+                <!--<div class="form-group row">
                     <label for="boroughNo" class="col-md-2 col-form-label">Borough</label>
                     <div class="col-md-8 offset-md-2">
                         <input type="text" class="form-control blue-bg" id="boroughNo">
@@ -208,20 +187,30 @@
                     <div class="col-md-8 offset-md-2">
                         <input type="text" class="form-control blue-bg" id="districtNo">
                     </div>
-                </div>
+                </div>-->
                 <div class="form-group row justify-content-center">
-                    <div class="col-md-12">
+                    <!--<div class="col-md-12">
                         <button class="btn btn-block"id="getNYDistrictShape" type="button">District shape</button>
                     </div>
                     <div class="col-md-12">
                         <button class="btn btn-block" id="getNYBoroughShape" type="button">Borough Districts Shape</button>
                     </div>
-                    <div class="col-md-12">
-                        <button class="btn btn-block" id="clearBorders" type="button">Clear</button>
-                    </div>
+                    -->
+
                 </div>
             </form>
             <div class="col-md-8" id="map">
+            </div>
+        </div>
+        <div class="row justify-content-center" id="filters">
+            <div class="col-md-4">
+                <button class="btn btn-block" > SAFETY </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-block"> AFFORDABILITY </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-block"> DISTANCE </button>
             </div>
         </div>
         <div class="row">
@@ -233,27 +222,9 @@
         </div>
     </div>
 
-    <div class="container" id="find">
-
-        <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>FIND ME A DISTRICT TO LIVE [WIP]</h1>
-        </div>
-        <div class="row justify-content-center">
-            <p>I CARE ABOUT:</p>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-3">
-                <button class="btn btn-block" > SAFETY </button>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-block"> AFFORDABILITY </button>
-            </div>
-        </div>
-    </div>
-
     <div class="container" id="raw">
         <div class="row justify-content-center dark-primary-color text-primary-color">
-            <h1>RAW DATA</h1>
+            <h1>DATA</h1>
         </div>
         <div class="row justify-content-center" id="tableSelector">
             <div class="col-md-3">
@@ -315,6 +286,31 @@
         </div>
         <p>Here you find the list of all the Neighborhoods in NY, along with their name centroid coordinates (geografical center) and the borough that they are part of.</p>
     </div>
+
+    <div class="container" id="stats">
+        <div class="radarChart">
+
+        </div>
+        <div class="row justify-content-center dark-primary-color text-primary-color">
+            <h1>INFORMATION</h1>
+        </div>
+        <div class="info" id="geoinfo">
+            <p>Hover over a district</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-12" id="d3">
+                <svg>
+
+                </svg>
+            </div>
+            <div class="col-auto loader"></div>
+
+        </div>
+        <div class="row justify-content-center">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
 
     <div class="container" id="credits">
 
