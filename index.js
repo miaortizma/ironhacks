@@ -2,10 +2,10 @@ var NY_district_shapes_URL = 'https://data.cityofnewyork.us/resource/jp9i-3b7y.j
 var NY_district_names_URL = 'https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD';
 var NY_crimes_URL = 'https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD';
 var NY_building_URL = 'https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD';
-//air_quality doesn't have data of all habitable districts so it's a no-no.
+//air_quality doesn't have data of all habitable districts, only of 42. So it's a no-no.
 var NY_air_quality_URL = 'https://data.cityofnewyork.us/resource/ah89-62h9.json';
 var NY_markets_URL = 'https://data.ny.gov/resource/7jkw-gj56.json';
-var NY_subawy_URL = 'https://data.ny.gov/resource/hvwh-qtfg.json';
+var NY_subway_URL = 'https://data.ny.gov/resource/hvwh-qtfg.json';
 var URL;
 /*
 Borough no:
@@ -38,10 +38,11 @@ var drawOnlyHabitable = false;
 var drawCrimes = false;
 var sortAscending = true;
 
-var topColumns = ['crimes','score','distance'];
-var useColumn = [true, true, true];
+var topColumns = ['crimes','score','distance','markets','subway'];
+var useColumn = [true, true,true,true,true];
 
 function updateColumns(column){
+    console.log(column);
     topDistrictsTable();
     useColumn[column] = !useColumn[column];
     var columnin = $('table th:contains(\''+topColumns[column]+'\')').index() + 1;
@@ -56,10 +57,11 @@ var isChrome = !!window.chrome && !!window.chrome.webstore;
 
 //https://stackoverflow.com/questions/10024469/whats-the-best-way-to-retry-an-ajax-request-on-failure-using-jquery
 
-function retryAjax(url_, name){
+function retryAjax(url_, name, data){
     return $.ajax({
         url : url_,
         type : 'GET',
+        data: data,
         tryCount: 0,
         retryLimit: 3,
         success : function(json){
@@ -76,23 +78,28 @@ function retryAjax(url_, name){
 }
 
 function getData(){
+    var marketParameters = {'$where': 'city in (\'Brooklyn\',\'Bronx\',\'Manhattan\',\'Queens\',\'Staten Island\')'};
+    var subwayParameters = {'$select': 'entrance_latitude, entrance_longitude', 'entry':'YES'};
     $.when(retryAjax(NY_district_shapes_URL, 'features'),
     retryAjax(NY_district_names_URL, 'names'),
     retryAjax(NY_building_URL, 'buildings'),
     retryAjax(NY_crimes_URL, 'crimes'),
-    retryAjax(NY_markets_URL, 'markets'))
-    .done(function(data1, data2, data3, data4, data5){
+    retryAjax(NY_markets_URL, 'markets', marketParameters),
+    retryAjax(NY_subway_URL, 'subway', subwayParameters))
+    .done(function(data1, data2, data3, data4, data5, data6){
         data1 = data1[0];
         data2 = data2[2].responseJSON.data;
         data3 = data3[2].responseJSON.data;
         data4 = data4[2].responseJSON.data;
-        console.log(data5);
         data5 = data5[0];
+        data6 = data6[0];
+
         constructFeatures(data1);
         constructNames(data2);
         constructBuildings(data3);
         constructCrimes(data4);
         constructMarkets(data5);
+        constructSubway(data6);
         topDistricts();
         topDistrictsTable();
         radarTest(1);
@@ -167,7 +174,8 @@ function constructFeatures(data){
             score: 0,
             crimes: 0,
             neighborhoods: [],
-            buildings: []
+            buildings: [],
+            markets: 0
         };
     }
 }
@@ -229,7 +237,7 @@ function constructCrimes(data){
             boroughs[boroughaltID[a[21]]].crimes.push(point);
         }
     });
-    
+
     for (var i = 0; i < 5; i++) {
         boroughs[i].crimes = boroughs[i].crimes.map(x => new google.maps.LatLng(x));
         boroughs[i].heatmap = new google.maps.visualization.HeatmapLayer({data: boroughs[i].crimes});
@@ -238,22 +246,29 @@ function constructCrimes(data){
 
 function constructMarkets(data){
     $.each(data, function(i,a){
-        row = {lat: a.latitude, lng: a.lng};
-        console.log(a);
+        point = {lat: parseFloat(a.latitude), lng: parseFloat(a.longitude)};
+        district = findDistrict(point);
+        if(district != -1){
+            markets.push(point);
+            districts[district].markets++;
+        }
     });
 }
 
-function showCrimes(){
-    if(drawCrimes){
-        heatmap.setMap(map);
-    }else{
-        heatmap.setMap(null);
-    }
+function constructSubway(data){
+    $.each(data, function(i,a){
+        point = {lat: parseFloat(a.entrance_latitude), lng: parseFloat(a.entrance_longitude)};
+        district = findDistrict(point);
+        console.log("i: " + i);
+        console.log(district);
+    });
 }
 
 function neighborhoodsTable(){
     var columns = ['id','lat','lng','name','borough','district'];
-    getTable(infoRows, columns, function(){}, 'neighborhoods');
+    getTable(infoRows, columns, function(row){
+        addDistrict(row.district);
+    }, 'neighborhoods');
     $('#getData').addClass('selected');
 }
 
@@ -272,8 +287,6 @@ function districtsTable(){
     $('#districtsTableMessage').show();
 }
 
-var topCalculated = false;
-
 function zScores(array) {
     var mean = d3.mean(array);
     var standardDeviation = d3.deviation(array);
@@ -286,14 +299,15 @@ function topDistricts(){
     var affordability = zScores(districts.map(a => a.score));
     var distances = zScores(districts.map(a => a.distance));
     var crimes = zScores(districts.map(a => a.crimes));
+    var markets = zScores(districts.map(a => a.markets));
     $.each(districts, function(i, a){
-        a.zscores = [crimes[i], affordability[i], distances[i]];
+        a.zscores = [crimes[i], affordability[i], distances[i], markets[i]];
     });
 }
 
 function topDistrictsTable(){
-    var columns = ['id', 'borough', 'borocd','score','distance','crimes','zscore'];
-    var signs = [-1, 1, -1];
+    var columns = ['id', 'borough', 'borocd','score','distance','crimes','markets','zscore'];
+    var signs = [-1, 1, -1, 1];
     $.each(districts, function(i, a){
         a.zscore = 0.0;
         for (var i = 0; i < useColumn.length; i++) {
@@ -306,7 +320,6 @@ function topDistrictsTable(){
         addDistrict(row.id);
     }, 'top_districts');
     $('#top').addClass('selected');
-    topCalculated = true;
 }
 
 function sortByColumn(tbody, column){
