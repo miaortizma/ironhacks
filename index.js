@@ -2,6 +2,7 @@ var NY_district_shapes_URL = 'https://data.cityofnewyork.us/resource/jp9i-3b7y.j
 var NY_district_names_URL = 'https://data.cityofnewyork.us/api/views/xyye-rtrs/rows.json?accessType=DOWNLOAD';
 var NY_crimes_URL = 'https://data.cityofnewyork.us/api/views/wuv9-uv8d/rows.json?accessType=DOWNLOAD';
 var NY_building_URL = 'https://data.cityofnewyork.us/api/views/hg8x-zxpr/rows.json?accessType=DOWNLOAD';
+var NY_air_quality_URL = 'https://data.cityofnewyork.us/resource/ah89-62h9.json'
 var URL;
 /*
 Borough no:
@@ -193,6 +194,8 @@ function constructCrimes(data){
             //addMarker(point,'CRIMENLOL');
             continue;
         }
+        console.log("crime");
+        console.log(data[i]);
         crimes.push(point);
         districts[district].crimes++;
         boroughs[boroughaltID[data[i][21]]].crimes.push(point);
@@ -235,6 +238,7 @@ function districtsTable(){
 var topCalculated = false;
 
 function topDistrictsTable(){
+    console.log("hey1");
     var columns = ['id', 'borough', 'borocd','score','distance','crimes','zscore'];
     if(!topCalculated){
         var affordability = arr.zScores(districts.map(a => a.score));
@@ -251,6 +255,7 @@ function topDistrictsTable(){
     getTable(districts.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
     });
+    console.log("hey");
     $('#top').addClass('selected');
     topCalculated = true;
 }
