@@ -28,6 +28,7 @@ var infoRows = [];
 var buildings = [];
 var crimes = [];
 var markets = [];
+var metro = [];
 var map;
 var geocoder;
 var heatmap;
@@ -38,11 +39,10 @@ var drawOnlyHabitable = false;
 var drawCrimes = false;
 var sortAscending = true;
 
-var topColumns = ['crimes','score','distance','markets','subway'];
+var topColumns = ['crimes','score','distance','markets','metrod'];
 var useColumn = [true, true,true,true,true];
 
 function updateColumns(column){
-    console.log(column);
     topDistrictsTable();
     useColumn[column] = !useColumn[column];
     var columnin = $('table th:contains(\''+topColumns[column]+'\')').index() + 1;
@@ -113,7 +113,6 @@ function getData(){
     }, 'text').fail(function(){
         console.log('wtf');
     });
-
 }
 
 function constructFeatures(data){
@@ -157,9 +156,19 @@ function constructFeatures(data){
         google.maps.event.addListener(polygon, 'mouseover', function () {
             //alert the index of the polygon
             district = districts[this.indexID];
-            console.log(district.borocd);
-            console.log(district.zscores);
+            /*console.log(district.centroid);
+            console.log(district.center.getPosition().lat());
+            console.log(district.center.getPosition().lng());*/
+            radarTest(this.indexID);
+            metro[district.metro].marker.setMap(map);
+            district.center.setMap(map);
         });
+        google.maps.event.addListener(polygon, 'mouseout', function () {
+            district = districts[this.indexID];
+            metro[district.metro].marker.setMap(null);
+            district.center.setMap(null);
+        });
+
 
         districts[i] = {id: i,
             path: multipoly,
@@ -175,7 +184,8 @@ function constructFeatures(data){
             crimes: 0,
             neighborhoods: [],
             buildings: [],
-            markets: 0
+            markets: 0,
+            metrod: 35
         };
     }
 }
@@ -256,12 +266,40 @@ function constructMarkets(data){
 }
 
 function constructSubway(data){
+    var d = 0;
     $.each(data, function(i,a){
         point = {lat: parseFloat(a.entrance_latitude), lng: parseFloat(a.entrance_longitude)};
+        if(point.lng > 0){
+            point.lng = -point.lng;
+        }
         district = findDistrict(point);
-        /*console.log("i: " + i);
-        console.log(district);*/
+        district = districts[district];
+        metro.push({point: point, marker: getMarker(point, "Metro Entrance", true)});
+        d = distanceBetween(district.centroid, point);
+        if(d < district.metrod){
+            district.metrod = d;
+            district.metro = i;
+        }
     });
+    var max = 0;
+    for (var i = 0; i < 71; i++) {
+        district = districts[i];
+        for (var j = 0; j < metro.length; j++){
+            d = distanceBetween(district.centroid, metro[j].point);
+            if(d < district.metrod){
+                district.metrod = d;
+                district.metro = j;
+            }
+        }
+    }
+}
+
+function showSubway(){
+    for (var i = 0; i < metro.length; i++) {
+        if(!metro[i].marker.getMap()){
+            metro[i].marker.setMap(map);
+        }
+    }
 }
 
 function neighborhoodsTable(){
@@ -280,7 +318,13 @@ function buildingsTable(){
 
 function districtsTable(){
     var columns = ['id', 'borough', 'borocd', 'score','distance','crimes'];
-    getTable(districts, columns, function(row){
+    var districts_ = districts.map(obj =>{
+        var rObj = {...obj};
+        rObj.borough = boroughs[rObj.borough].name;
+        return rObj;
+    });
+
+    getTable(districts_, columns, function(row){
         addDistrict(row.id);
     }, 'districts');
     $('#getDistrictsData').addClass('selected');
@@ -300,14 +344,31 @@ function topDistricts(){
     var distances = zScores(districts.map(a => a.distance));
     var crimes = zScores(districts.map(a => a.crimes));
     var markets = zScores(districts.map(a => a.markets));
+    var metros = zScores(districts.map(a => a.metrod));
+
+    scoreScale = d3.scaleLinear()
+    .domain([d3.min(affordability), d3.max(affordability)])
+    .range([0,1]);
+    distScale = d3.scaleLinear()
+    .domain([d3.min(distances), d3.max(distances)])
+    .range([0,1]);
+    safetyScale = d3.scaleLinear()
+    .domain([d3.min(crimes), d3.max(crimes)])
+    .range([0,1]);
+    marketsScale = d3.scaleLinear()
+    .domain([d3.min(markets), d3.max(markets)])
+    .range([0,1]);
+    metroScale = d3.scaleLinear()
+    .domain([d3.min(metros), d3.max(metros)])
+    .range([0,1]);
     $.each(districts, function(i, a){
-        a.zscores = [crimes[i], affordability[i], distances[i], markets[i]];
+        a.zscores = [crimes[i], affordability[i], distances[i], markets[i], metros[i]];
     });
 }
 
 function topDistrictsTable(){
-    var columns = ['id', 'borough', 'borocd','score','distance','crimes','markets','zscore'];
-    var signs = [-1, 1, -1, 1];
+    var columns = ['id', 'borough', 'borocd','score','distance','crimes','markets','metrod','zscore'];
+    var signs = [-1, 1, -1, 1, -1];
     $.each(districts, function(i, a){
         a.zscore = 0.0;
         for (var i = 0; i < useColumn.length; i++) {
@@ -316,7 +377,12 @@ function topDistrictsTable(){
             }
         }
     });
-    getTable(districts.filter(x => x.habitable), columns, function(row){
+    var districts_ = districts.map(obj =>{
+        var rObj = {...obj};
+        rObj.borough = boroughs[rObj.borough].name;
+        return rObj;
+    });
+    getTable(districts_.filter(x => x.habitable), columns, function(row){
         addDistrict(row.id);
     }, 'top_districts');
     $('#top').addClass('selected');
@@ -505,7 +571,7 @@ function handleMouseover(d,i){
     var district = districts[i];
     var centroid = district.centroid;
     //console.log(centroid);
-    var str = ['Borough: ' + boroughs[district.borough].name, 'Distance to NYU: '+ miles(district.distance) + ' miles', 'Centroid: ' + centroid.lat + ' ' + centroid.lng];
+    var str = ['Borough: ' + boroughs[district.borough].name, 'Distance to NYU: '+ miles(district.distance) + ' miles', 'Centroid: ' + centroid.lat + ' ' + centroid.lng, 'Distance to Metro: ' + district.metrod, 'Farmers Markets: ' + district.markets ];
     var lines = d3.select('#geoinfo')
     .selectAll('p')
     .data(str)
@@ -631,29 +697,25 @@ function d3test(features){
 
 function radarTest(district){
     var width = parseInt(d3.select('.radarChart').style('width'));
-    var mrg = 50;
+    var mrg = 20;
     var margin = { top: mrg, right: mrg, bottom: mrg, left: mrg},
     width = width - mrg*2,
-    height = width,
+    height = width - mrg*2,
     district = districts[district];
-
-    var zscores = districts.map(a => a.zscores);
-    var cols = zscores[0].length;
-    var myScale = d3.scaleLinear(d3.min(districts.map(a => a.zscores[0])));
-
     var data = [
     { name: district.borocd,
         axes: [
-            {axis: 'Score', value: 0.15},
-            {axis: 'Crimes', value: 0.20},
-            {axis: 'Distance', value: 0.60},
-            {axis: 'Air', value: 0.50},
-            {axis: 'Subway', value: 0.30}
+            {axis: 'Score', value: scoreScale(district.zscores[1])},
+            {axis: 'Safety', value: 1 - safetyScale(district.zscores[0])},
+            {axis: 'Distance NYU', value: 1 - distScale(district.zscores[2])},
+            {axis: 'Markets', value: marketsScale(district.zscores[3])},
+            {axis: 'Distance Subway', value: 1 -metroScale(district.zscores[4])}
         ]
     }];
+
     var radarChartOptions = {
-			  w: 225,
-			  h: 225,
+			  w: width,
+			  h: height,
 			  margin: margin,
 			  levels: 5,
               maxValue: 1,

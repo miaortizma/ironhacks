@@ -85,8 +85,6 @@
                 <p id="HELLO"></p>
                 <p>Find residence options near NYU<p>
                     <hr class="divider-color">
-
-
                     <div id="carouselExampleControls" class="carousel slide dark-primary-color text-primary-color" data-ride="carousel">
                         <p>Here you can:</p>
                         <div class="carousel-inner" role="listbox">
@@ -176,69 +174,71 @@
                     </div>
                     <div class="radarChart"></div>
                     <!--
-                                        <div class="form-group row">
-                                        <label for="boroughNo" class="col-md-2 col-form-label">Borough</label>
-                                        <div class="col-md-8 offset-md-2">
-                                        <input type="text" class="form-control blue-bg" id="boroughNo">
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                <label for="districtNo" class="col-md-2 col-form-label">District</label>
-                                <div class="col-md-8 offset-md-2">
-                                <input type="text" class="form-control blue-bg" id="districtNo">
-                            </div>
-                        </div>
-
-                        <div class="form-group row justify-content-center">
-                            <div class="col-md-12">
-                                <button class="btn btn-block"id="getNYDistrictShape" type="button">District shape</button>
-                            </div>
-                            <div class="col-md-12">
-                                <button class="btn btn-block" id="getNYBoroughShape" type="button">Borough Districts Shape</button>
-                            </div>
-                        </div>
-                    -->
-                </form>
-
-                <div class="col-md-8" id="map"></div>
-            </div>
-
-            <div class="row justify-content-center" id="filters">
-                <div class="col-md-4">
-                    <button class="btn btn-block">SAFETY</button>
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-block">AFFORDABILITY</button>
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-block">DISTANCE TO NYU</button>
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-block">FARMERS MARKETS</button>
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-block">DISTANCE TO SUBWAY</button>
+                    <div class="form-group row">
+                    <label for="boroughNo" class="col-md-2 col-form-label">Borough</label>
+                    <div class="col-md-8 offset-md-2">
+                    <input type="text" class="form-control blue-bg" id="boroughNo">
                 </div>
             </div>
-            <div class="row justify-content-center">
-                <div class="col-md-4 text-center">
-                    <caption>Filters</caption>
-                    <button class="btn">ALL</button>
-                    <button class="btn">NONE</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col text-center">
-                    <p> There are 71 districst in New York City, but only 59 of them are habitable! (12 of them are green areas), nonetheless you can see here all of them</p>
-                    <p> The districts are classified into Boroughs and also contain several Neighborhoods!</p>
-                    <p> Also.. The little red marker is NYU!</p>
-                </div>
-            </div>
+            <div class="form-group row">
+            <label for="districtNo" class="col-md-2 col-form-label">District</label>
+            <div class="col-md-8 offset-md-2">
+            <input type="text" class="form-control blue-bg" id="districtNo">
         </div>
+    </div>
 
-<div class="container" id="raw">
+    <div class="form-group row justify-content-center">
+    <div class="col-md-12">
+    <button class="btn btn-block"id="getNYDistrictShape" type="button">District shape</button>
+</div>
+<div class="col-md-12">
+<button class="btn btn-block" id="getNYBoroughShape" type="button">Borough Districts Shape</button>
+</div>
+</div>
+-->
+</form>
+
+<div class="col-md-8" id="map"></div>
+</div>
+<div class="row">
+    <div class="col text-center">
+        <p> There are 71 districst in New York City, but only 59 of them are habitable! (12 of them are green areas), nonetheless you can see here all of them</p>
+        <p> The districts are classified into Boroughs and also contain several Neighborhoods!</p>
+    </div>
+</div>
+</div>
+
+    <div class="container" id="raw">
     <div class="row justify-content-center dark-primary-color text-primary-color">
         <h1>DATA</h1>
+    </div>
+    <div class="row">
+        <div class="col text-center">
+            <p>Explore and filter the data, when you feel comfortable click a row in the top districts table and the district will be displayed in the map</p>
+            <p> All distances are in km</p>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-4 text-center">
+            <p>Filters</p>
+        </div>
+    </div>
+    <div class="row justify-content-center" id="filters">
+        <div class="col-md-4">
+            <button class="btn btn-block">SAFETY</button>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-block">AFFORDABILITY</button>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-block">DISTANCE TO NYU</button>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-block">FARMERS MARKETS</button>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-block">DISTANCE TO SUBWAY</button>
+        </div>
     </div>
     <div class="row justify-content-center" id="tableSelector">
         <div class="col-md-3">
@@ -300,7 +300,8 @@
     </div>
     <p>Here you find the list of all the Neighborhoods in NY, along with their name centroid coordinates (geografical center) and the borough that they are part of.</p>
 </div>
-<div class="container" id="stats">
+
+    <div class="container" id="stats">
     <div class="row justify-content-center dark-primary-color text-primary-color">
         <h1>INFORMATION</h1>
     </div>
@@ -321,8 +322,7 @@
     </div>
 </div>
 
-
-<div class="container" id="credits">
+    <div class="container" id="credits">
 
     <div class="row">
         Icons made by
@@ -336,7 +336,6 @@
         MIGUEL ANGEL ORTIZ MARIN
     </div>
 </div>
-
 
 </body>
 </html>
