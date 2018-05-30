@@ -259,8 +259,8 @@ function constructSubway(data){
     $.each(data, function(i,a){
         point = {lat: parseFloat(a.entrance_latitude), lng: parseFloat(a.entrance_longitude)};
         district = findDistrict(point);
-        console.log("i: " + i);
-        console.log(district);
+        /*console.log("i: " + i);
+        console.log(district);*/
     });
 }
 
